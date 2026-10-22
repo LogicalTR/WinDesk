@@ -16,7 +16,11 @@ internal static class Program
     private static int Main(string[] args)
     {
         if (args.Length >= 2 && args[0] == "--shortcut-probe") {
-            File.WriteAllText(args[1], System.Text.Json.JsonSerializer.Serialize(new { Arguments = args.Skip(2), Directory = Environment.CurrentDirectory })); return 0;
+            // Publish only a completed response: on a slower VM the caller can
+            // observe File.Exists while WriteAllText still holds an exclusive handle.
+            string temporary = args[1] + ".tmp";
+            File.WriteAllText(temporary, System.Text.Json.JsonSerializer.Serialize(new { Arguments = args.Skip(2), Directory = Environment.CurrentDirectory }));
+            File.Move(temporary, args[1]); return 0;
         }
         if (args.Contains("--import-test")) { ShortcutImportTests.Run(Check).GetAwaiter().GetResult(); Console.WriteLine($"{_assertions} shortcut import assertions passed."); return 0; }
         if (args.Contains("--preview-desktop")) return DesktopPreview.Run();
@@ -37,6 +41,10 @@ internal static class Program
         {
             try
             {
+                if (args.Contains("--explorer-restart-test")) {
+                    await ExplorerRestartTests.Run(app, Check);
+                    Console.WriteLine($"{_assertions} real Explorer restart assertions passed."); return;
+                }
                 if (args.Contains("--display-test")) {
                     await DisplayBehaviorTests.Run(app, Check);
                     Console.WriteLine($"{_assertions} display behavior assertions passed."); return;
@@ -206,7 +214,9 @@ internal static class Program
                 {
                     var header = Descendants<PanelSection>(pinnedArea).Single(s => s.Model.Id == first.Id).HeaderScreenOrigin;
                     var grab = new DesktopNative.Point((int)header.X + 85, (int)header.Y + 20);
-                    var outside = new DesktopNative.Point(150, 650);
+                    // Keep this offset test clear of the work-area boundary on
+                    // the 1280x800 VM; screen-edge clamping is valid behavior.
+                    var outside = new DesktopNative.Point(150, 350);
                     pinnedArea.BeginSectionDrag(first.Id, grab); pinnedArea.ContinueDrag(outside);
                     Check(pinnedArea.ScreenX == 600 && pinnedArea.ScreenY == 250, "Dragging a member out leaves the original shared area in place");
                     pinnedArea.EndDrag(outside, commit: false); await Task.Delay(100);
@@ -225,7 +235,7 @@ internal static class Program
                         "Dropping a section outside creates independent panels and dissolves a one-member area");
                     Check(detached.IsSectionExpanded(first.Id) && first.IsPinned && first.Items.Count == 2 && survivor.ScreenX == 600 && survivor.ScreenY == 250,
                         "Detachment preserves the pinned open state, shortcuts and remaining area position");
-                    Check(Math.Abs(detached.ScreenX - 65) < 2 && Math.Abs(detached.ScreenY - 630) < 2,
+                    Check(Math.Abs(detached.ScreenX - 65) < 2 && Math.Abs(detached.ScreenY - 330) < 2,
                         "Detached panel follows the grabbed header offset at the drop position");
                     var newArea = app.Workspace.MergeAreas(first.Id, second.Id);
                     var thirdGroup = new WinDesk.Core.PanelModel { Name = "Üçüncü grup", X = 1100, Y = 400 };

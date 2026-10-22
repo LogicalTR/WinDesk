@@ -37,6 +37,14 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // The portable EXE has the same minimum OS as Setup. Check before
+        // opening the workspace or creating any Explorer child windows.
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19045))
+        {
+            MessageBox.Show("WinDesk için Windows 10 22H2 (19045) veya üzeri gerekir.",
+                "WinDesk", MessageBoxButton.OK, MessageBoxImage.Information);
+            Shutdown(1); return;
+        }
         try { DesktopLaunch.EnsureUnpackaged(); }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) {
             MessageBox.Show(ex.Message, "WinDesk"); Shutdown(1); return;
@@ -92,7 +100,7 @@ public partial class App : Application
             diagnosticTimer.Tick += (_, _) =>
             {
                 diagnosticTimer.Stop();
-                File.WriteAllText(diagnosticsPath, $"Data file: {_store.FilePath}\nGroups: {Workspace.Panels.Count}; Shortcuts: {Workspace.Panels.Sum(p => p.Items.Count)}\n" + DesktopNative.DescribeDesktop() + string.Join(Environment.NewLine,
+                File.WriteAllText(diagnosticsPath, $"Windows version: {Environment.OSVersion.Version}; Architecture: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}\nData file: {_store.FilePath}\nGroups: {Workspace.Panels.Count}; Shortcuts: {Workspace.Panels.Sum(p => p.Items.Count)}\n" + DesktopNative.DescribeDesktop() + string.Join(Environment.NewLine,
                     _windows.Values.Select(p => $"Panel {p.Id}: loaded={p.IsLoaded} visible={p.IsVisible} size={p.ActualWidth},{p.ActualHeight} desired={p.DesiredSize} opacity={p.Opacity} presentation={System.Windows.PresentationSource.FromVisual(p) is not null}")));
             };
             diagnosticTimer.Start();

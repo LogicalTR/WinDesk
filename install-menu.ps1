@@ -1,4 +1,7 @@
 $ErrorActionPreference = 'Stop'
+if ([Environment]::OSVersion.Version -lt [Version]'10.0.22621.0') {
+    throw 'The optional modern desktop menu requires Windows 11 22H2 or later. On Windows 10, use WinDesk Setup to install the classic desktop menu.'
+}
 $root = $PSScriptRoot
 $packagePath = Join-Path $root 'dist\WinDesk.DesktopMenu.msix'
 $certificatePath = Join-Path $root 'dist\WinDesk.DesktopMenu.cer'

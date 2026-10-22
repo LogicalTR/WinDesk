@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WinDesk.App;
@@ -12,7 +11,7 @@ internal static class ShortcutImportTests
 {
     internal static async Task Run(Action<bool, string> check)
     {
-        string root = Path.Combine(Path.GetTempPath(), "WinDeskImport-" + Guid.NewGuid().ToString("N"));
+        string root = Path.Combine(Path.GetTempPath(), "WinDeskImport-" + Guid.NewGuid().ToString("N"), "Türkçe çalışma-日本語");
         Directory.CreateDirectory(root);
         string desktop = Path.Combine(root, "desktop"), owned = Path.Combine(root, "data", "Shortcuts"), moved = Path.Combine(root, "moved");
         Directory.CreateDirectory(desktop); Directory.CreateDirectory(moved);
@@ -49,6 +48,15 @@ internal static class ShortcutImportTests
         var exportedItem = importer.Import(exported);
         check(exportedItem.Path == target && exportedItem.Arguments == arguments && original.SequenceEqual(File.ReadAllBytes(exported)),
             "Dragging an imported item back out produces a shortcut to the actual target with its original metadata");
+        string freshExport = DesktopShortcutExporter.Export(new ShortcutModel {
+            Name = "Türkçe uygulama", Path = target, Arguments = arguments, WorkingDirectory = root
+        }, Path.Combine(root, "export"));
+        File.Delete(output);
+        using var exportedProcess = Process.Start(new ProcessStartInfo(freshExport) { UseShellExecute = true, WindowStyle = ProcessWindowStyle.Hidden });
+        for (int i = 0; i < 100 && !File.Exists(output); i++) await Task.Delay(50);
+        using (var exportedResult = File.Exists(output) ? JsonDocument.Parse(File.ReadAllText(output)) : null)
+            check(exportedResult is not null && exportedResult.RootElement.GetProperty("Arguments")[0].GetString() == "Türkçe değer",
+                "A newly exported shortcut launches with Unicode arguments on a non-Turkish Windows installation");
         var profileTwo = new ShortcutModel { Name = "Personal", Path = target, Arguments = "--profile=personal", WorkingDirectory = root };
         check(workspace.Panels[0].AddShortcut(profileTwo) && !workspace.Panels[0].AddShortcut(reloaded),
             "Different application profiles stay distinct while identical launches are deduplicated");
@@ -76,18 +84,7 @@ internal static class ShortcutImportTests
 
     private static void CreateLink(string file, string target, string arguments, string workingDirectory)
     {
-        object? shell = null, link = null;
-        try {
-            shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell", true)!);
-            link = ((dynamic)shell!).CreateShortcut(file);
-            ((dynamic)link).TargetPath = target; ((dynamic)link).Arguments = arguments;
-            ((dynamic)link).WorkingDirectory = workingDirectory;
-            ((dynamic)link).IconLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shell32.dll") + ",3";
-            ((dynamic)link).Save();
-        }
-        finally {
-            if (link is not null) Marshal.FinalReleaseComObject(link);
-            if (shell is not null) Marshal.FinalReleaseComObject(shell);
-        }
+        WindowsShellLink.Create(file, target, arguments, workingDirectory,
+            iconPath: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shell32.dll"), iconIndex: 3);
     }
 }

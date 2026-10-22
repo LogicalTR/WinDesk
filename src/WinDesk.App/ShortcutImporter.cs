@@ -23,23 +23,16 @@ internal sealed class ShortcutImporter(string directory)
 
         if (extension == ".lnk")
         {
-            object? shell = null, shortcut = null;
             try
             {
-                shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell", true)!);
-                shortcut = ((dynamic)shell!).CreateShortcut(source);
-                string target = Environment.ExpandEnvironmentVariables((string)((dynamic)shortcut).TargetPath);
+                var shortcut = WindowsShellLink.Read(source);
+                string target = Environment.ExpandEnvironmentVariables(shortcut.Target);
                 item.Path = Path.IsPathFullyQualified(target) ? Path.GetFullPath(target) : "";
-                item.Arguments = (string)((dynamic)shortcut).Arguments;
-                item.WorkingDirectory = Environment.ExpandEnvironmentVariables((string)((dynamic)shortcut).WorkingDirectory);
-                item.WindowStyle = (int)((dynamic)shortcut).WindowStyle;
+                item.Arguments = shortcut.Arguments;
+                item.WorkingDirectory = Environment.ExpandEnvironmentVariables(shortcut.WorkingDirectory);
+                item.WindowStyle = shortcut.WindowStyle;
             }
             catch (COMException ex) { throw new IOException("Windows kısayolu okunamadı.", ex); }
-            finally
-            {
-                if (shortcut is not null && Marshal.IsComObject(shortcut)) Marshal.FinalReleaseComObject(shortcut);
-                if (shell is not null && Marshal.IsComObject(shell)) Marshal.FinalReleaseComObject(shell);
-            }
         }
         // Preserve the full shell link too: custom icon, elevation, MSI and
         // virtual-shell targets cannot all be represented by an EXE path.

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using WinDesk.Core;
 
 namespace WinDesk.App;
@@ -37,23 +36,9 @@ internal static class DesktopShortcutExporter
             if (existingLink) File.Copy(source, destination, overwrite: true);
             else
             {
-                object? shell = null, link = null;
-                try
-                {
-                    shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell", throwOnError: true)!);
-                    link = ((dynamic)shell!).CreateShortcut(destination);
-                    ((dynamic)link).TargetPath = source;
-                    ((dynamic)link).Arguments = item.Arguments;
-                    ((dynamic)link).WorkingDirectory = item.WorkingDirectory.Length > 0 ? item.WorkingDirectory : Directory.Exists(source) ? source : Path.GetDirectoryName(source);
-                    ((dynamic)link).WindowStyle = item.WindowStyle;
-                    ((dynamic)link).Description = item.Name;
-                    ((dynamic)link).Save();
-                }
-                finally
-                {
-                    if (link is not null && Marshal.IsComObject(link)) Marshal.FinalReleaseComObject(link);
-                    if (shell is not null && Marshal.IsComObject(shell)) Marshal.FinalReleaseComObject(shell);
-                }
+                WindowsShellLink.Create(destination, source, item.Arguments,
+                    item.WorkingDirectory.Length > 0 ? item.WorkingDirectory : Directory.Exists(source) ? source : Path.GetDirectoryName(source)!,
+                    item.WindowStyle, item.Name);
             }
             if (new FileInfo(destination).Length == 0) throw new IOException("Masaüstü kısayolu oluşturulamadı.");
             return destination;

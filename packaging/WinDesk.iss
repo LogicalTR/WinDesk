@@ -22,7 +22,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64os
 ArchitecturesInstallIn64BitMode=x64os
-MinVersion=10.0.22621
+MinVersion=10.0.19045
 OutputDir={#ReleaseOutput}
 OutputBaseFilename=WinDesk-Setup-{#AppVersion}-x64
 SetupIconFile=..\src\WinDesk.App\Assets\WinDesk.ico
@@ -42,7 +42,7 @@ Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Masaüstüne WinDesk kısayolu ekle"; GroupDescription: "Kısayollar:"
-Name: "contextmenu"; Description: "Masaüstü sağ tık menüsüne WinDesk ekle (Daha fazla seçenek göster)"; GroupDescription: "Masaüstü:"
+Name: "contextmenu"; Description: "Masaüstü sağ tık menüsüne WinDesk ekle (klasik menü)"; GroupDescription: "Masaüstü:"
 Name: "startup"; Description: "Windows oturumu açıldığında WinDesk'i başlat"; GroupDescription: "Başlangıç:"; Flags: unchecked
 
 [Files]

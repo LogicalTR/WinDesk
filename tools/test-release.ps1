@@ -1,6 +1,9 @@
-param([string]$Version = '0.7.5')
+param([string]$Version)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+if (-not $Version) {
+    $Version = ([xml](Get-Content -LiteralPath (Join-Path $root 'src\WinDesk.App\WinDesk.App.csproj') -Raw)).Project.PropertyGroup.Version
+}
 $release = Join-Path $root "dist\releases\$Version"
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C984BBCE-651F-4B55-ACB5-8531C17B7C38}_is1'
 $menuKey = 'HKCU:\Software\Classes\DesktopBackground\Shell\WinDesk'
@@ -12,6 +15,7 @@ $installation = Join-Path $case 'application'
 $data = Join-Path $case 'isolated-data'
 $diagnostics = Join-Path $case 'diagnostics.txt'
 New-Item -ItemType Directory -Path $case -Force | Out-Null
+Write-Output "Testing WinDesk $Version on Windows $([Environment]::OSVersion.Version)"
 $userWorkspace = Join-Path $env:LOCALAPPDATA 'WinDesk\workspace.json'
 $before = if (Test-Path -LiteralPath $userWorkspace) { (Get-FileHash -LiteralPath $userWorkspace).Hash } else { $null }
 $application = $null

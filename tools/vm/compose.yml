@@ -1,0 +1,34 @@
+name: windesk-win10-qa
+services:
+  windows:
+    build: .
+    image: windesk-win10-qa:local
+    container_name: windesk-win10-22h2
+    environment:
+      VERSION: "10e"
+      CPU_CORES: "4"
+      RAM_SIZE: "6G"
+      DISK_SIZE: "64G"
+      DISK_FMT: "qcow2"
+      DISK_IO: "threads"
+      DISK_CACHE: "writeback"
+      USERNAME: "WinDeskQA"
+      PASSWORD: ${WINDESK_VM_PASSWORD:?Set a local VM password}
+      HOST: "WINDESK-QA"
+      WIDTH: "1280"
+      HEIGHT: "800"
+      QMP: "/run/windesk-qmp.sock"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "127.0.0.1:18006:8006"
+    volumes:
+      - ${WINDESK_VM_ROOT:?Set the VM storage folder}/storage:/storage
+      - ${WINDESK_VM_ROOT}/shared:/shared
+      - ${WINDESK_VM_ROOT}/oem:/oem:ro
+      - ${WINDESK_VM_ROOT}/windows10-22h2-eval.iso:/custom.iso:ro
+    stop_grace_period: 2m
+    restart: "no"

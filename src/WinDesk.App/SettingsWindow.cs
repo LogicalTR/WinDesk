@@ -41,7 +41,7 @@ internal sealed class SettingsWindow : Window
         _visibility = new Button { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 24, 0, 18) };
         _visibility.Click += (_, _) => Controller.TogglePanels(); body.Children.Add(_visibility);
         _status = new TextBlock { FontSize = 11, Foreground = ManagerWindow.Brush("#A4AFC1"), TextWrapping = TextWrapping.Wrap }; body.Children.Add(_status);
-        body.Children.Add(new TextBlock { Text = "WinDesk 0.7.5", FontSize = 11, Foreground = ManagerWindow.Brush("#75859B"), Margin = new Thickness(0, 8, 0, 0) });
+        body.Children.Add(new TextBlock { Text = $"WinDesk {typeof(App).Assembly.GetName().Version?.ToString(3)}", FontSize = 11, Foreground = ManagerWindow.Brush("#75859B"), Margin = new Thickness(0, 8, 0, 0) });
         Content = body;
         _saveTimer.Tick += (_, _) => { _saveTimer.Stop(); Controller.Save(); };
         Controller.WorkspaceChanged += Refresh; Controller.DesktopStatusChanged += Refresh;

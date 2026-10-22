@@ -1,12 +1,12 @@
 # WinDesk
 
-Windows 11 için C# / WPF ile geliştirilen kişisel masaüstü düzenleyici. Gruplar Explorer'ın masaüstü katmanında yaşar; bağımsız uygulama penceresi olarak öne çıkmaz. Gruplar isteğe bağlı olarak tek bir akordiyon alanında birleştirilebilir.
+Windows 10 ve 11 için C# / WPF ile geliştirilen kişisel masaüstü düzenleyici. Gruplar Explorer'ın masaüstü katmanında yaşar; bağımsız uygulama penceresi olarak öne çıkmaz. Gruplar isteğe bağlı olarak tek bir akordiyon alanında birleştirilebilir.
 
 ## Çalıştırma
 
-[GitHub Releases](https://github.com/LogicalTR/WinDesk/releases/latest) sayfasından **WinDesk-Setup-0.7.5-x64.exe** dosyasını indirin. Türkçe kurucu yalnız mevcut kullanıcıya kurar; masaüstü/Başlat kısayollarını, klasik sağ tık menüsünü ve isteğe bağlı Windows başlangıcını hazırlar. Windows 11 22H2 ve üzeri, x64 gerekir. Yayın paketi .NET çalışma zamanını içerir.
+[GitHub Releases](https://github.com/LogicalTR/WinDesk/releases/latest) yayımlanmış sürümleri içerir. Bu kaynak sürümünün kurucusu **WinDesk-Setup-0.7.6-x64.exe** dosyasıdır. Türkçe kurucu yalnız mevcut kullanıcıya kurar; masaüstü/Başlat kısayollarını, klasik sağ tık menüsünü ve isteğe bağlı Windows başlangıcını hazırlar. Hedef sistem Windows 10 22H2 (19045) ve üzeri, x64'tür. Yayın paketi .NET çalışma zamanını içerir. Windows 10 22H2 üzerinde gerçek sanal makine doğrulaması tamamlandı; ortam ve kapsam aşağıdaki test matrisindedir.
 
-Kurulum istemiyorsanız **WinDesk-0.7.5-win-x64.exe** dosyasını doğrudan açın veya ZIP paketini çıkarıp `WinDesk.exe` dosyasını çalıştırın. Paneller başlar; ayrı bir yönetim penceresi açılmaz. Genel tercihlere saat yanındaki **Ayarlar** komutuyla ulaşılır. Kurucunun sağ tık menüsü **Daha fazla seçenek göster → WinDesk** altındadır; aşağıdaki modern menü MSIX adımları geliştiriciler içindir.
+Kurulum istemiyorsanız **WinDesk-0.7.6-win-x64.exe** dosyasını doğrudan açın veya ZIP paketini çıkarıp `WinDesk.exe` dosyasını çalıştırın. Paneller başlar; ayrı bir yönetim penceresi açılmaz. Genel tercihlere saat yanındaki **Ayarlar** komutuyla ulaşılır. Kurucunun sağ tık menüsü Windows 10'da **masaüstü sağ tık → WinDesk**, Windows 11'de **Daha fazla seçenek göster → WinDesk** altındadır; aşağıdaki modern menü MSIX adımları geliştiriciler içindir.
 
 Yeni sürümü kurmadan önce saat yanındaki WinDesk menüsünden **Çıkış**'ı seçin. Güncelleme ve kaldırma `%LOCALAPPDATA%\WinDesk` içindeki düzeni ve saklanan kısayolları silmez. Otomatik güncelleme yoktur. EXE dosyaları henüz Authenticode yayıncı imzası taşımaz; indirme bütünlüğü için `SHA256SUMS.txt` sunulur.
 
@@ -50,6 +50,19 @@ Bu çalışma alanındaki SDK `.tools\dotnet` altında izole tutulur. `build.ps1
 `build.ps1` geliştirme için `dist\WinDesk` altına .NET 10 Desktop Runtime gerektiren bir yayın çıkarır. `build-release.ps1` PATH üzerindeki .NET 10 SDK ile çalışma zamanını içeren tek EXE, ZIP, Türkçe Setup ve SHA-256 dosyasını `dist\releases\<sürüm>` altında üretir. Inno Setup 6.7.3 derleyicisi sabit SHA-256 değeriyle doğrulanan NuGet paketinden `.tools` altına çıkarılır; derleyicinin Pyrsys B.V. imzası kontrol edilir. Sistem geneline kurulum yapılmaz. Sürüm ana uygulamanın `.csproj` dosyasından alınır. Yerel geliştirme araçları, test verileri ve `.ua` analiz çıktıları Git deposuna alınmaz.
 
 `tools\test-release.ps1` gerçek kurucuyu ayrı bir test klasöründe kurar, yayımlanan EXE'nin açılışını ve üç klasik menü komutunu doğrular, ardından test kurulumunu kaldırır. WinDesk'in kapalı olduğu ve kurucu/klasik menü kaydı bulunmayan bir test hesabı gerektirir. Mevcut kullanıcı düzeninin hash değerini kurulum öncesi ve sonrası karşılaştırır; günlükleri `artifacts` altında tutar.
+
+### Windows uyumluluğunu doğrulama
+
+Ana uygulama ve Setup için alt sınır Windows 10 22H2, derleme 19045'tir. Taşınabilir EXE de açılışta bu sınırı denetler. `net10.0-windows` ve mevcut Win32/WPF API'leri korunur; Windows 11'e özel modern menü isteğe bağlıdır ve kendi 22621 sınırını korur. `install-menu.ps1`, daha eski Windows sürümlerinde klasik menü kurulumuna yönlendiren bir hata verir.
+
+Her hedef sistemde WinDesk kapalıyken `build-release.ps1 -Test` ve temiz bir test hesabında `tools\test-release.ps1` çalıştırılır. Tanılama raporu gerçek Windows sürümünü ve işlemci mimarisini kaydeder. Windows 10 testinde SDK kurmak istenmiyorsa, bu depoda oluşturulan yayın paketleriyle Setup/EXE açılışı ayrıca denenebilir. .NET'in Microsoft tarafından desteklenen Windows sürümleri, işletim sisteminin yaşam döngüsüne bağlıdır; uygulamanın çalışma uyumluluğu ayrı doğrulanır: [Microsoft destek tablosu](https://learn.microsoft.com/en-us/dotnet/core/install/windows#supported-versions).
+
+| Ortam | Doğrulama |
+| --- | --- |
+| Windows 10 Enterprise Evaluation 22H2 x64 (19045.2006) | Docker içinde QEMU/KVM VM, 1280×800 / %100 DPI; global .NET olmadan ve yükseltilmemiş oturumda Setup/açılış/kaldırma, 55 çekirdek, 114 WPF/masaüstü ve 8 gerçek Explorer yeniden başlatma kontrolü geçti. |
+| Windows 11 x64 (26200) | Bu geliştirme ortamında son düzeltmeyle 55 çekirdek ve 114 WPF/masaüstü kontrolü geçti; ayrıntılar RELEASE_NOTES.md içinde. |
+
+VM kurulumu ve tekrar çalıştırma adımları [tools/vm/README.md](tools/vm/README.md) içindedir. Gerçek masaüstü ekran görüntüsü ve tanılama raporu alındı. Klasik menünün kayıtları ve uygulama komutları otomatik sınanır; Explorer menüsünde elle tıklama, oturum açılışında otomatik başlatma, sanal masaüstleri ve karma DPI monitörleri ayrıca doğrulanmalıdır. Normal testlerin bağlantı kaybı simülasyonuna ek olarak VM'de açıkça seçilen `--explorer-restart-test`, gerçek Explorer sürecini yeniden başlatır.
 
 ```text
 src/WinDesk.Core/Workspace.cs       Paneller, kısayollar, JSON kayıt ve doğrulama
@@ -99,7 +112,7 @@ Eski kayıtlar açılışta dönüştürülür. Kaynak kısayol kayıpsa Başlat
 ## Kalan sınırlar
 
 - `Progman` / `WorkerW` / `SHELLDLL_DefView` yerleşimi Windows kabuğunun sürüme bağlı iç yapısıdır. Desteklenmeyen kabukta program panelleri gizli tutar ve Ayarlar penceresinde bağlantı durumunu gösterir.
-- Gerçek Explorer çökmesi/yeniden başlatılması, tüm sanal masaüstü geçişleri ve karma DPI monitör kombinasyonları ayrıca doğrulanmalıdır. Otomatik testler kullanıcının Explorer sürecini yeniden başlatmaz.
+- Gerçek Explorer yeniden başlatılması Windows 10 VM'de görünür ve gizli panellerle doğrulandı. Windows 11'de gerçek yeniden başlatma, tüm sanal masaüstü geçişleri ve karma DPI monitör kombinasyonları ayrıca doğrulanmalıdır. Normal testler kullanıcının Explorer sürecini yeniden başlatmaz; VM testi ayrıca etkinleştirilir.
 - Panel genişliği sabittir; dört sütun ve en fazla üç görünür satırdan sonra kaydırılır.
 - Uygulama listesi tarama ve otomatik sınıflandırma sonraki geliştirmeler için bırakılmıştır.
 

@@ -1,6 +1,6 @@
-WinDesk — Windows 11 masaüstü düzenleyici
+WinDesk — Windows 10 ve 11 masaüstü düzenleyici
 
-Gereksinim: Windows 11 22H2 veya üzeri, x64.
+Gereksinim: Windows 10 22H2 (19045) veya üzeri, x64.
 .NET çalışma zamanı pakete dahildir; ayrıca .NET kurmanız gerekmez.
 
 KURULUM
@@ -17,7 +17,8 @@ KULLANIM
 - Panel başlığına yaklaşınca grup açılır; raptiye açık kalmasını sağlar.
 - Kısayolları sürükleyip gruba bırakın.
 - Grup başlıklarını sürükleyerek grupları birleştirin veya ayırın.
-- Kurulu sürüm: masaüstü sağ tık > Daha fazla seçenek göster > WinDesk.
+- Windows 10: masaüstü sağ tık > WinDesk.
+- Windows 11: masaüstü sağ tık > Daha fazla seçenek göster > WinDesk.
 
 GÜNCELLEME VE KALDIRMA
 Yeni sürümü https://github.com/LogicalTR/WinDesk/releases adresinden
@@ -28,7 +29,7 @@ Windows Ayarları > Uygulamalar bölümünden kaldırabilirsiniz.
 Gruplar ve saklanan kısayollar %LOCALAPPDATA%\WinDesk içindedir.
 Güncelleme ve kaldırma bu kullanıcı verilerini silmez.
 
-Bu ilk dağıtımın EXE dosyalarında Authenticode yayıncı imzası yoktur.
+EXE dosyalarında Authenticode yayıncı imzası yoktur.
 SHA256SUMS.txt indirdiğiniz dosyaların bütünlüğünü kontrol etmek içindir.
 Windows 11'in ilk sağ tık menüsü için geliştirici MSIX eklentisi bu
 pakete dahil değildir; kurucu klasik masaüstü menüsünü sağlar.
