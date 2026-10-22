@@ -8,4 +8,5 @@
     <NoWarn>$(NoWarn);WFO0003</NoWarn>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../../src/WinDesk.App/WinDesk.App.csproj" /></ItemGroup>
+  <ItemGroup><Content Include="../../src/WinDesk.App/App.xaml" Link="AppStyles.xaml" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

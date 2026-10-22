@@ -21,9 +21,14 @@ KULLANIM
 - Windows 11: masaüstü sağ tık > Daha fazla seçenek göster > WinDesk.
 
 GÜNCELLEME VE KALDIRMA
-Yeni sürümü https://github.com/LogicalTR/WinDesk/releases adresinden
-indirin. Önce saat yanındaki WinDesk menüsünden Çıkış'ı seçin.
-Yeni kurucuyu aynı klasöre kurabilirsiniz. Otomatik güncelleme yoktur.
+Ayarlar > Güncellemeleri denetle ile yeni kararlı sürümü bulun.
+Güncellemeyi indir düğmesi dosyayı arka planda indirip doğrular.
+Onayınızla düzen kaydedilir, WinDesk kapanır ve kurulum açılır.
+Taşınabilir kullanımda bu seçenek kullanıcı hesabına kurulum yapar.
+Kurulum sonunda WinDesk'i yeniden başlatabilirsiniz.
+0.7.6 ve daha eski sürümlerden geçerken kurucuyu bir kez elle indirin:
+https://github.com/LogicalTR/WinDesk/releases/latest
+Önce çalışan WinDesk'i kapatın. Sessiz/otomatik kurulum yapılmaz.
 Windows Ayarları > Uygulamalar bölümünden kaldırabilirsiniz.
 
 Gruplar ve saklanan kısayollar %LOCALAPPDATA%\WinDesk içindedir.

@@ -378,6 +378,21 @@ public partial class App : Application
 
     public static void ShowError(string title, Exception error) => MessageBox.Show(error.Message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
 
+    internal void InstallUpdate(ReleaseUpdate update, string installer)
+    {
+        using var verified = ReleaseUpdates.OpenVerifiedInstaller(update, installer);
+        EndShortcutDrag(default, false);
+        foreach (var window in _windows.Values) window.CapturePosition();
+        // Unlike Save(), propagate failures: never quit for an update if saving failed.
+        _store.Save(Workspace);
+        using var process = Process.Start(new ProcessStartInfo(installer, "/SP- /NORESTART /WINDESKUPDATE=1") { UseShellExecute = false })
+            ?? throw new InvalidOperationException("Kurulum başlatılamadı.");
+        IsExiting = true;
+        _desktop?.Dispose();
+        foreach (var window in _windows.Values) window.Close();
+        _tray?.Dispose(); Shutdown();
+    }
+
     public void ExitApp()
     {
         EndShortcutDrag(default, false);

@@ -1,3 +1,18 @@
+# WinDesk 0.7.7
+
+Uygulama içinden güncelleme ve tek komutla arka planda yayın.
+
+- **Ayarlar → Güncellemeleri denetle** yeni kararlı GitHub sürümünü bulur. İndirme arka planda, ilerleme göstergesi ve iptal seçeneğiyle yapılır.
+- Kurucu boyutu ve SHA-256 değeri doğrulanır; eksik, bozuk veya indirmeden sonra değiştirilmiş dosya çalıştırılmaz. Kurulum yalnız kullanıcının onayıyla açılır.
+- Kurulumdan önce düzen kaydedilir ve WinDesk normal şekilde kapanır. Kurucu kapanmayı bekler; kullanıcı verileri korunur. Taşınabilir uygulamada bu seçenek kullanıcı hesabına kurulum yapar.
+- Geliştirici için `publish-release.ps1`: test, EXE/ZIP/Setup ve kaynak arşivi, GitHub taslağı, yükleme doğrulaması, yayın ve indirme bağlantılarının güncellenmesi. Varsayılan olarak gizli bir arka plan işlemi çalışır; günlük ve durum dosyası üretir. Kesilen yükleme aynı komutla sürdürülür.
+
+**0.7.6 ve daha eski sürümlerden geçiş:** Güncelleme düğmesi eski uygulamada bulunmaz. `WinDesk-Setup-0.7.7-x64.exe` dosyasını bir kez indirip WinDesk'i kapatarak kurun; sonraki sürümleri uygulama içinden denetleyebilirsiniz.
+
+Windows 10 22H2 (19045) ve üzeri x64; .NET çalışma zamanı dahildir. EXE dosyaları henüz Authenticode ile imzalı değildir. Kaynak kodu ekli `WinDesk-0.7.7-source.zip` dosyasındadır; GitHub'ın otomatik Source code arşivleri dağıtım deposunu içerir.
+
+Doğrulama: 81 çekirdek/güncelleme, 13 yayın doğrulama ve 7 pencere açmadan çalışan güncelleme arayüzü kontrolü. Yeni güncelleme akışının gerçek kullanıcı kurulumuyla uçtan uca geçişi ayrıca test edilmelidir; aşağıdaki Windows 10/11 tam masaüstü testleri 0.7.6'ya aittir.
+
 # WinDesk 0.7.6
 
 Windows 10 22H2 (19045) ve üzeri x64 sistemleri hedefleyen uyumluluk güncellemesi.

@@ -69,6 +69,21 @@ Root: HKCU; Subkey: "Software\Classes\DesktopBackground\Shell\WinDesk\shell\03-s
 Filename: "{app}\WinDesk.exe"; Description: "WinDesk'i başlat"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [Code]
+function InitializeSetup(): Boolean;
+var
+  Attempt: Integer;
+begin
+  { Give the updater time to save its layout and release the application mutex.
+    Never terminate the application or skip the normal AppMutex protection. }
+  if ExpandConstant('{param:WINDESKUPDATE|0}') = '1' then
+    for Attempt := 1 to 100 do
+    begin
+      if not CheckForMutexes('Local\WinDesk.Desktop.v1') then Break;
+      Sleep(100);
+    end;
+  Result := True;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   Command: String;

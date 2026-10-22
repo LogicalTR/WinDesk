@@ -15,6 +15,10 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "--update-test") {
+            try { UpdatePanelTests.Run(Check, Path.GetFullPath(args[1])); Console.WriteLine($"{_assertions} background update UI assertions passed."); return 0; }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        }
         if (args.Length >= 2 && args[0] == "--shortcut-probe") {
             // Publish only a completed response: on a slower VM the caller can
             // observe File.Exists while WriteAllText still holds an exclusive handle.

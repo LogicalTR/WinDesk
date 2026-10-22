@@ -11,6 +11,7 @@ internal sealed class SettingsWindow : Window
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private readonly Button _visibility;
     private readonly TextBlock _status;
+    private readonly UpdatePanel _updates = new();
     private App Controller => App.CurrentApp;
 
     internal SettingsWindow()
@@ -42,7 +43,9 @@ internal sealed class SettingsWindow : Window
         _visibility.Click += (_, _) => Controller.TogglePanels(); body.Children.Add(_visibility);
         _status = new TextBlock { FontSize = 11, Foreground = ManagerWindow.Brush("#A4AFC1"), TextWrapping = TextWrapping.Wrap }; body.Children.Add(_status);
         body.Children.Add(new TextBlock { Text = $"WinDesk {typeof(App).Assembly.GetName().Version?.ToString(3)}", FontSize = 11, Foreground = ManagerWindow.Brush("#75859B"), Margin = new Thickness(0, 8, 0, 0) });
-        Content = body;
+        body.Children.Add(_updates);
+        MaxHeight = Math.Max(250, SystemParameters.WorkArea.Height - 32);
+        Content = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         _saveTimer.Tick += (_, _) => { _saveTimer.Stop(); Controller.Save(); };
         Controller.WorkspaceChanged += Refresh; Controller.DesktopStatusChanged += Refresh;
         Closing += OnClosing; Refresh();
@@ -54,6 +57,7 @@ internal sealed class SettingsWindow : Window
     private void OnClosing(object? sender, CancelEventArgs e)
     {
         _saveTimer.Stop();
+        _updates.Cancel();
         if (Controller.IsExiting) return;
         Controller.Save(); e.Cancel = true; Hide();
     }

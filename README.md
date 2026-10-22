@@ -4,11 +4,11 @@ Windows 10 ve 11 için C# / WPF ile geliştirilen kişisel masaüstü düzenleyi
 
 ## Çalıştırma
 
-[GitHub Releases](https://github.com/LogicalTR/WinDesk/releases/latest) yayımlanmış sürümleri içerir. Bu kaynak sürümünün kurucusu **WinDesk-Setup-0.7.6-x64.exe** dosyasıdır. Türkçe kurucu yalnız mevcut kullanıcıya kurar; masaüstü/Başlat kısayollarını, klasik sağ tık menüsünü ve isteğe bağlı Windows başlangıcını hazırlar. Hedef sistem Windows 10 22H2 (19045) ve üzeri, x64'tür. Yayın paketi .NET çalışma zamanını içerir. Windows 10 22H2 üzerinde gerçek sanal makine doğrulaması tamamlandı; ortam ve kapsam aşağıdaki test matrisindedir.
+[GitHub Releases](https://github.com/LogicalTR/WinDesk/releases/latest) yayımlanmış sürümleri içerir. Bu kaynak sürümünün kurucusu **WinDesk-Setup-0.7.7-x64.exe** dosyasıdır. Türkçe kurucu yalnız mevcut kullanıcıya kurar; masaüstü/Başlat kısayollarını, klasik sağ tık menüsünü ve isteğe bağlı Windows başlangıcını hazırlar. Hedef sistem Windows 10 22H2 (19045) ve üzeri, x64'tür. Yayın paketi .NET çalışma zamanını içerir. Windows 10 22H2 üzerinde gerçek sanal makine doğrulaması tamamlandı; ortam ve kapsam aşağıdaki test matrisindedir.
 
-Kurulum istemiyorsanız **WinDesk-0.7.6-win-x64.exe** dosyasını doğrudan açın veya ZIP paketini çıkarıp `WinDesk.exe` dosyasını çalıştırın. Paneller başlar; ayrı bir yönetim penceresi açılmaz. Genel tercihlere saat yanındaki **Ayarlar** komutuyla ulaşılır. Kurucunun sağ tık menüsü Windows 10'da **masaüstü sağ tık → WinDesk**, Windows 11'de **Daha fazla seçenek göster → WinDesk** altındadır; aşağıdaki modern menü MSIX adımları geliştiriciler içindir.
+Kurulum istemiyorsanız **WinDesk-0.7.7-win-x64.exe** dosyasını doğrudan açın veya ZIP paketini çıkarıp `WinDesk.exe` dosyasını çalıştırın. Paneller başlar; ayrı bir yönetim penceresi açılmaz. Genel tercihlere saat yanındaki **Ayarlar** komutuyla ulaşılır. Kurucunun sağ tık menüsü Windows 10'da **masaüstü sağ tık → WinDesk**, Windows 11'de **Daha fazla seçenek göster → WinDesk** altındadır; aşağıdaki modern menü MSIX adımları geliştiriciler içindir.
 
-Yeni sürümü kurmadan önce saat yanındaki WinDesk menüsünden **Çıkış**'ı seçin. Güncelleme ve kaldırma `%LOCALAPPDATA%\WinDesk` içindeki düzeni ve saklanan kısayolları silmez. Otomatik güncelleme yoktur. EXE dosyaları henüz Authenticode yayıncı imzası taşımaz; indirme bütünlüğü için `SHA256SUMS.txt` sunulur.
+**Ayarlar → Güncellemeleri denetle** ile yeni kararlı sürümü bulun, ardından **Güncellemeyi indir**'e basın. İndirme arka planda yapılır; SHA-256 ve boyut doğrulaması geçmeden kurucu çalıştırılmaz. Onay verdiğinizde düzen kaydedilir, WinDesk kapanır ve Türkçe kurulum sihirbazı açılır. Taşınabilir kullanımda bu seçenek kullanıcı hesabına kurulum yapar; kurulum sonunda yeni WinDesk'i başlatın. Otomatik/sessiz kurulum yapılmaz. 0.7.6 ve daha eski sürümlerde bu düğme yoktur; yeni kurucuyu bir kez elle indirip WinDesk'i kapatarak kurmak gerekir. Güncelleme ve kaldırma `%LOCALAPPDATA%\WinDesk` içindeki düzeni ve saklanan kısayolları silmez. EXE dosyaları henüz Authenticode yayıncı imzası taşımaz; indirme bütünlüğü için `SHA256SUMS.txt` sunulur.
 
 - Küçük panel başlığına fareyle yaklaşınca uygulamalar açılır.
 - Fare uzaklaşınca sabitlenmemiş panel kapanır. **Ayarlar → Otomatik kapanma** ile 0,20–2,00 saniye seçilir. Değişiklik bekleyen kapanma sayacına da hemen uygulanır.
@@ -36,6 +36,31 @@ WinDesk'in oturum açıldığında panelleri otomatik göstermesi için normal k
 Otomatik başlatmayı `.\set-startup.ps1 -Disable` veya **Windows Ayarları → Uygulamalar → Başlangıç → WinDesk** ile kapatabilirsiniz. Windows Ayarları'ndan daha önce devre dışı bıraktıysanız aynı yerden tekrar etkinleştirin.
 
 ## Geliştirme
+
+### Tek komutla arka planda yayın
+
+Yeni sürüm için `src/WinDesk.App/WinDesk.App.csproj` içindeki `Version` değerini artırın, `RELEASE_NOTES.md` başına `# WinDesk <sürüm>` bölümü ekleyin ve kaynak değişikliklerini Git'e commit edin. Ardından:
+
+```powershell
+.\publish-release.ps1
+```
+
+Komut hemen işlem kimliği, `status.json` ve `publish.log` yollarını verir. PowerShell 7, Git, .NET 10 SDK ve LogicalTR hesabına yetkili GitHub CLI gerekir. Bu bilgisayarda CLI `.tools\github-cli\bin\gh.exe` konumunda ve oturumu hazırdır; başka bilgisayarda `gh auth login` bir kez yapılır. Kimlik bilgileri kaynak koduna veya pakete eklenmez.
+
+Testler, tek EXE/ZIP/Setup derlemesi, tam kaynak ZIP'i ve SHA-256 listesi hazırlanır. Beş dosya GitHub taslağına yüklenir; sunucudaki boyut ve SHA-256 değerleri eşleşince sürüm herkese açılıp **Latest** yapılır. Dağıtım deposunun README indirme bağlantıları da güncellenir. Kaynak kodu mevcut dağıtım düzenine uygun olarak ekli kaynak ZIP'inde kalır; yerel kaynak dalı GitHub `main` dalına itilmez.
+
+Komut masaüstünü açmaz, çalışan WinDesk'i kapatmaz ve kurucuyu bu bilgisayarda çalıştırmaz. Çekirdek/güncelleme testleri, yayın doğrulama testleri ve pencere açmadan güncelleme arayüzü testleri çalışır. Explorer/kurulum gibi masaüstünü etkileyen tam testler ayrı test hesabı veya VM'de yapılmalıdır.
+
+```powershell
+.\publish-release.ps1 -ValidateOnly   # Derle ve test et; GitHub'a yazma
+.\publish-release.ps1 -Foreground     # Aynı akışı mevcut konsolda izle
+Get-Content '<çıktıdaki status.json yolu>'
+Get-Content '<çıktıdaki publish.log yolu>' -Tail 30
+```
+
+Yükleme kesilirse aynı komut aynı commit'in doğrulanmış paketlerini kullanır ve eksik dosyalardan devam eder. Yayımlanmış dosyaları değiştirmez; yeni kod için yeni sürüm gerekir. Taslağın dosyaları farklıysa, Git ağacı kirliyse veya başka yayın çalışıyorsa durur. `artifacts\publish-<sürüm>\manifest.json` tekrar denemelerin kaydıdır; yayını tamamlayana kadar bu klasörü ve `dist\releases\<sürüm>` dosyalarını koruyun. `status.json` içindeki `published` tamamlanmayı, `validated` yalnız yerel doğrulamayı, `failed` ise hata aşamasını gösterir.
+
+Güncelleme denetimi yalnız kullanıcı düğmeye bastığında GitHub'ın herkese açık API'sini kullanır; hesap/token ve kullanıcı düzeni gönderilmez. İndirmeler `%LOCALAPPDATA%\WinDesk\Updates` altında tutulur. Yarım dosyalar temizlenir; tamamlanan kurucular gerektiğinde yeniden kullanılabilir.
 
 Gerekli araç: [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). WPF, Windows'a özgü yerel arayüz katmanıdır; tarayıcı veya Electron çalıştırılmaz.
 

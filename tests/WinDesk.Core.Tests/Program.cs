@@ -181,6 +181,7 @@ try
     var sortedReload = store.Load();
     Check(sortedReload.Panels.Where(p => p.StackId == sortStack.Id).Select(p => p.Id).SequenceEqual(new[] { sortA.Id, sortC.Id, sortB.Id }) && sortedReload.Panels.Single(p => p.Id == sortC.Id).IsPinned,
         "The reordered group titles and pin state survive a save and restart");
+    UpdateTests.Run(Check, directory).GetAwaiter().GetResult();
     Console.WriteLine($"{assertions} assertions passed.");
 }
 finally
