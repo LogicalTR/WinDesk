@@ -32,6 +32,7 @@ public partial class App : Application
     internal IEnumerable<DesktopPanel> DesktopPanels => _windows.Values;
     internal Func<DesktopNative.Point, IntPtr> WindowAtPoint { get; set; } = DesktopNative.WindowFromPoint;
     internal Action<ShortcutModel> ShortcutLauncher { get; set; } = Launch;
+    internal Func<ProcessStartInfo, Process?> UpdateInstallerLauncher { get; set; } = Process.Start;
     internal void RefreshDesktopConnection() => _desktop?.Synchronize();
     public static App CurrentApp => (App)Current;
 
@@ -385,7 +386,7 @@ public partial class App : Application
         foreach (var window in _windows.Values) window.CapturePosition();
         // Unlike Save(), propagate failures: never quit for an update if saving failed.
         _store.Save(Workspace);
-        using var process = Process.Start(new ProcessStartInfo(installer, "/SP- /NORESTART /WINDESKUPDATE=1") { UseShellExecute = false })
+        using var process = UpdateInstallerLauncher(new ProcessStartInfo(installer, "/SP- /NORESTART /WINDESKUPDATE=1") { UseShellExecute = false })
             ?? throw new InvalidOperationException("Kurulum başlatılamadı.");
         IsExiting = true;
         _desktop?.Dispose();

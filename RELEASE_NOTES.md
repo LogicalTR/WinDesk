@@ -11,7 +11,7 @@ Uygulama içinden güncelleme ve tek komutla arka planda yayın.
 
 Windows 10 22H2 (19045) ve üzeri x64; .NET çalışma zamanı dahildir. EXE dosyaları henüz Authenticode ile imzalı değildir. Kaynak kodu ekli `WinDesk-0.7.7-source.zip` dosyasındadır; GitHub'ın otomatik Source code arşivleri dağıtım deposunu içerir.
 
-Doğrulama: 81 çekirdek/güncelleme, 13 yayın doğrulama ve 7 pencere açmadan çalışan güncelleme arayüzü kontrolü. Yeni güncelleme akışının gerçek kullanıcı kurulumuyla uçtan uca geçişi ayrıca test edilmelidir; aşağıdaki Windows 10/11 tam masaüstü testleri 0.7.6'ya aittir.
+Doğrulama: 81 çekirdek/güncelleme, 13 yayın doğrulama ve 7 pencere açmadan çalışan güncelleme arayüzü kontrolü. Windows 10 VM paketi ayrıca gerçek 0.7.6 → 0.7.7 kurulum geçişini; özel kurulum klasörü, başlangıç seçimi, menü komutları, gruplar ve saklanan kısayolların korunmasını sınar. Uygulamanın indirme doğrulaması, kaydetme/kapanma ve gerçek kurucuyu başlatma akışı da VM'de denenir; henüz yayımlanmamış sürüm yanıtı yerel test verisinden gelir ve gerçek kurucu sihirbazı belgelenmiş sessiz parametrelerle tamamlanır. Test günlükleri ve paket hash'leri VM raporunda tutulur. Aşağıdaki tarihli Windows 10/11 masaüstü sonuçları 0.7.6'ya aittir.
 
 # WinDesk 0.7.6
 

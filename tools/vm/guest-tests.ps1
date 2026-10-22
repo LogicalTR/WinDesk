@@ -58,6 +58,8 @@ Run-Case 'desktop' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('-
 Run-Case 'shortcut-import' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--import-test') }
 Run-Case 'recovery' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--recovery-test') }
 Run-Case 'display' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--display-test', '--quiet', '--data-dir', "$Root\artifacts\display") }
+Run-Case 'update-ui' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--update-test', "$Root\artifacts\update-ui") }
+Run-Case 'installed-update' { & "$Root\tools\vm\test-installed-update.ps1" -Root $Root -Report $Report }
 Run-Case 'modern-menu-guard' {
     $rejected = $false
     try { & "$Root\install-menu.ps1" } catch {
