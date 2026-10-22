@@ -110,7 +110,7 @@ public sealed class DesktopPanel : UserControl, IDisposable
             if (_dragging && _draggedSectionId.HasValue && DesktopNative.GetCursorPos(out var point)) Controller.UpdatePanelDrag(this, point);
         };
         MouseEnter += (_, _) => _closeTimer.Stop();
-        MouseLeave += (_, _) => { _openTimer.Stop(); QueueCollapse(); };
+        MouseLeave += (_, _) => { _openTimer.Stop(); _pendingSection = null; QueueCollapse(); };
         SizeChanged += (_, _) => UpdateBounds();
         PreviewKeyDown += (_, e) =>
         {
@@ -151,9 +151,21 @@ public sealed class DesktopPanel : UserControl, IDisposable
     internal void HoverSection(Guid id)
     {
         if (_closed || !Contains(id) || _dragging || _anotherPanelDragging) return;
-        _closeTimer.Stop(); _pendingSection = id;
+        _closeTimer.Stop(); _openTimer.Stop(); _pendingSection = id;
         if (ActiveSectionId == id) return;
-        _openTimer.Stop(); _openTimer.Start();
+        QueueHover();
+    }
+
+    private bool IsWaitingToCloseSection => _pendingSection.HasValue && ActiveSectionId is Guid current &&
+        current != _pendingSection && _models.Any(model => model.Id == current && !model.IsPinned);
+
+    private void QueueHover()
+    {
+        // Switching closes the current body, so honor the same delay as leaving
+        // the area. Opening from a closed/pinned group has nothing to close.
+        _openTimer.Stop();
+        _openTimer.Interval = TimeSpan.FromMilliseconds(IsWaitingToCloseSection ? Controller.Workspace.CloseDelayMs : 140);
+        _openTimer.Start();
     }
 
     public void Expand(Guid? sectionId = null)
@@ -161,14 +173,14 @@ public sealed class DesktopPanel : UserControl, IDisposable
         if (_closed) return;
         var id = sectionId ?? _models[0].Id;
         if (!Contains(id)) return;
-        _openTimer.Stop(); _closeTimer.Stop(); ActiveSectionId = id;
+        _openTimer.Stop(); _pendingSection = null; _closeTimer.Stop(); ActiveSectionId = id;
         ApplyExpandedState();
         if (!IsMouseOver) QueueCollapse();
     }
 
     public void Collapse()
     {
-        _openTimer.Stop(); ActiveSectionId = null;
+        _openTimer.Stop(); _pendingSection = null; ActiveSectionId = null;
         ApplyExpandedState();
     }
 
@@ -238,6 +250,7 @@ public sealed class DesktopPanel : UserControl, IDisposable
         _closeTimer.Stop();
         _closeTimer.Interval = TimeSpan.FromMilliseconds(Controller.Workspace.CloseDelayMs);
         if (waiting) _closeTimer.Start();
+        if (_openTimer.IsEnabled && IsWaitingToCloseSection) QueueHover();
     }
 
     internal void BeginDrag()
@@ -430,12 +443,12 @@ public sealed class DesktopPanel : UserControl, IDisposable
     internal void TrackMenu(ContextMenu menu)
     {
         _menus.Add(menu);
-        menu.Opened += (_, _) => { _openMenus++; _closeTimer.Stop(); };
+        menu.Opened += (_, _) => { _openMenus++; _closeTimer.Stop(); _openTimer.Stop(); _pendingSection = null; };
         menu.Closed += (_, _) => { _openMenus = Math.Max(0, _openMenus - 1); if (!_closed) QueueCollapse(); };
     }
     internal void UntrackMenu(ContextMenu menu) { menu.IsOpen = false; _menus.Remove(menu); }
     internal void WithDialog(Action action)
-    { _dialogOpen = true; try { action(); } finally { _dialogOpen = false; if (!_closed) QueueCollapse(); } }
+    { _dialogOpen = true; _openTimer.Stop(); _pendingSection = null; try { action(); } finally { _dialogOpen = false; if (!_closed) QueueCollapse(); } }
 
     public void Close() => Dispose();
     public void Dispose()

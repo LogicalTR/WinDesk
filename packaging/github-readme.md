@@ -17,6 +17,8 @@ Windows 10 22H2 (19045) ve üzeri, x64 gerekir. .NET çalışma zamanı dahildir
 
 Saat yanındaki WinDesk simgesinden yeni grup ekleyin veya ayarlara ulaşın. Kısayolları gruplara bırakın; başlıkları sürükleyerek birleştirin, sıralayın veya ayırın. Raptiye grubu açık tutar.
 
+**Otomatik kapanma** süresi, panelden ayrılmanın yanında birleşik gruplar arasında başlıkla geçişte de uygulanır. Süre dolunca önceki grup kapanıp yeni grup açılır; önceki gruba geri dönmek geçişi iptal eder. Sabitlenmiş gruplar açık kalır.
+
 Paneller ve birleşik alanlar yeniden açıldığında kayıtlı ekran konumlarına döner. İkinci ekran geç algılansa bile tercih edilen yer korunur.
 
 Uygulama güncellemesi kısayolun özel simge dosyasını silerse uygulamanın kendi simgesi gösterilir; kısayolu yeniden eklemek gerekmez. Geçerli özel simgeler ve açılış ayarları korunur.

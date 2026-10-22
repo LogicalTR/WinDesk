@@ -15,6 +15,10 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args.Contains("--close-delay-test")) {
+            try { CloseDelayTests.Run(Check); Console.WriteLine($"{_assertions} close delay assertions passed."); return 0; }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        }
         if (args.Length == 2 && args[0] == "--position-test") {
             try { PositionTests.Run(Check, Path.GetFullPath(args[1])); Console.WriteLine($"{_assertions} position assertions passed."); return 0; }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
@@ -275,6 +279,7 @@ internal static class Program
                 RecoveryTests.Run(Check);
                 await ShortcutImportTests.Run(Check);
                 await DisplayBehaviorTests.Run(app, Check);
+                await CloseDelayTests.Run(app, Check);
                 Console.WriteLine($"{_assertions} WPF and desktop integration assertions passed.");
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); exitCode = 1; }

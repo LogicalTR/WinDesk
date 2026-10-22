@@ -73,6 +73,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
         & dotnet run --project tests\WinDesk.App.Tests -c Release --no-build -- --update-test (Join-Path $RunDirectory 'update-ui') | Out-Host
         if ($LASTEXITCODE -ne 0) { throw 'Background update UI tests failed.' }
+        & dotnet run --project tests\WinDesk.App.Tests -c Release --no-build -- --close-delay-test | Out-Host
+        if ($LASTEXITCODE -ne 0) { throw 'Close delay tests failed.' }
         $stage = 'build'; Set-Status running "Building $tag and the installer."
         & (Join-Path $root 'build-release.ps1') | Out-Host
         $source = "WinDesk-$version-source.zip"

@@ -37,7 +37,7 @@ internal sealed class SettingsWindow : Window
             _saveTimer.Stop(); _saveTimer.Start();
         };
         body.Children.Add(slider);
-        body.Children.Add(new TextBlock { Text = "Fare uzaklaşınca sabitlenmemiş gruplar kapanır. Raptiyeyle sabitlediklerin her zaman açık kalır.",
+        body.Children.Add(new TextBlock { Text = "Fare uzaklaşınca veya başka grup başlığına geçince bu süre beklenir. Raptiyeyle sabitlediklerin her zaman açık kalır.",
             TextWrapping = TextWrapping.Wrap, Foreground = ManagerWindow.Brush("#A4AFC1"), LineHeight = 19 });
         _visibility = new Button { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 24, 0, 18) };
         _visibility.Click += (_, _) => Controller.TogglePanels(); body.Children.Add(_visibility);

@@ -1,3 +1,19 @@
+# WinDesk 0.7.10
+
+Birleşik gruplar arasında geçiş artık seçilen otomatik kapanma süresini kullanır.
+
+- Başka grup başlığına gelindiğinde mevcut sabitlenmemiş grup, **Ayarlar → Otomatik kapanma** süresi dolana kadar açık kalır. Ardından mevcut grup kapanır ve yeni grup açılır. Örneğin 1,50 saniye seçildiğinde geçiş de bu süreyi bekler.
+- Beklerken önceki gruba geri dönmek geçişi iptal eder. Panelin tamamından çıkmak bekleyen geçişi iptal eder ve normal otomatik kapanma süresini başlatır. Başlıklar arasında hızlı hareket edildiğinde yalnız son hedef açılır.
+- Süre ayarını değiştirmek bekleyen grup geçişine de uygulanır. İlk grubu açmak ve sabitlenmiş bir grubun yanındaki grubu açmak hızlı kalır; raptiyeyle sabitlenmiş gruplar açık kalır.
+- Sağ tık menüsü veya düzenleme penceresi açıldığında bekleyen grup geçişi iptal edilir. Ayarlardaki açıklama bu davranışı anlatacak şekilde güncellendi.
+- 0.7.9'daki uygulama güncellemesi sonrası simge düzeltmesi dahildir. Kayıtlı panel düzeni, kısayollar ve mevcut süre tercihi korunur.
+
+**Güncelleme:** 0.7.7 ve sonraki sürümlerde **Ayarlar → Güncellemeleri denetle** kullanılabilir. Daha eski sürümlerde `WinDesk-Setup-0.7.10-x64.exe` dosyasını indirip WinDesk'i kapatarak kurun.
+
+Doğrulama: Windows 11 üzerinde gerçek WPF zamanlayıcılarıyla 18 kapanma ve grup geçişi kontrolü geçti. 0,20 / 1,50 / 2,00 saniye ayarları, geri dönüşte iptal, panelden ayrılma, beklerken süre değişikliği, hızlı başlık geçişleri, sabitleme ve menü/pencere etkileşimleri sınandı. Bu kontroller yayın akışına da eklendi. Yerel düzeltme kurulu uygulamaya uygulanıp yeniden açıldı; kayıtlı düzenin değişmediği doğrulandı. Bu düzeltme için Windows 10 VM ve tam masaüstü etkileşim testleri tekrarlanmadı.
+
+Dağıtım: Windows 10 22H2 (19045) ve üzeri x64; .NET çalışma zamanı dahildir. Türkçe Setup, taşınabilir EXE/ZIP, tam kaynak kodu arşivi ve `SHA256SUMS.txt` birlikte sunulur. EXE dosyaları henüz Authenticode ile imzalı değildir.
+
 # WinDesk 0.7.9
 
 Uygulama güncellemelerinden sonra kaybolan kısayol simgeleri için kalıcı düzeltme.
