@@ -66,15 +66,15 @@ try {
         Set-Status running 'Reusing verified artifacts from this exact source commit.'
     } else {
         $stage = 'tests'; Set-Status running 'Running background tests (no desktop interaction).'
-        & dotnet run --project tests\WinDesk.Core.Tests -c Release
+        & dotnet run --project tests\WinDesk.Core.Tests -c Release | Out-Host
         if ($LASTEXITCODE -ne 0) { throw 'Core/update tests failed.' }
-        & (Join-Path $root 'tests\Test-PublishRelease.ps1')
-        & dotnet build WinDesk.slnx -c Release --nologo
+        & (Join-Path $root 'tests\Test-PublishRelease.ps1') | Out-Host
+        & dotnet build WinDesk.slnx -c Release --nologo | Out-Host
         if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
-        & dotnet run --project tests\WinDesk.App.Tests -c Release --no-build -- --update-test (Join-Path $RunDirectory 'update-ui')
+        & dotnet run --project tests\WinDesk.App.Tests -c Release --no-build -- --update-test (Join-Path $RunDirectory 'update-ui') | Out-Host
         if ($LASTEXITCODE -ne 0) { throw 'Background update UI tests failed.' }
         $stage = 'build'; Set-Status running "Building $tag and the installer."
-        & (Join-Path $root 'build-release.ps1')
+        & (Join-Path $root 'build-release.ps1') | Out-Host
         $source = "WinDesk-$version-source.zip"
         & git archive --format=zip "--prefix=WinDesk-$version/" "--output=$(Join-Path $output $source)" $commit
         if ($LASTEXITCODE -ne 0) { throw 'Source archive failed.' }
