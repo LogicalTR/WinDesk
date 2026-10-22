@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WinDesk.Core/WinDesk.Core.csproj" />
+    <Project Path="src/WinDesk.App/WinDesk.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WinDesk.Core.Tests/WinDesk.Core.Tests.csproj" />
+    <Project Path="tests/WinDesk.App.Tests/WinDesk.App.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,34 @@
+WinDesk — Windows 11 masaüstü düzenleyici
+
+Gereksinim: Windows 11 22H2 veya üzeri, x64.
+.NET çalışma zamanı pakete dahildir; ayrıca .NET kurmanız gerekmez.
+
+KURULUM
+WinDesk-Setup-<sürüm>-x64.exe dosyasını açın. Kurulum yalnız mevcut
+kullanıcı içindir ve yönetici izni istemez. Masaüstü kısayolu, klasik
+sağ tık menüsü ve Windows başlangıcı kurulumda seçilebilir.
+
+TAŞINABİLİR KULLANIM
+WinDesk.exe dosyasını kalıcı bir klasöre koyup açın. Taşınabilir sürüm
+Windows'a menü, otomatik başlangıç veya kaldırma kaydı eklemez.
+
+KULLANIM
+- Saat yanındaki WinDesk simgesi: Ayarlar, Yeni panel, Çıkış.
+- Panel başlığına yaklaşınca grup açılır; raptiye açık kalmasını sağlar.
+- Kısayolları sürükleyip gruba bırakın.
+- Grup başlıklarını sürükleyerek grupları birleştirin veya ayırın.
+- Kurulu sürüm: masaüstü sağ tık > Daha fazla seçenek göster > WinDesk.
+
+GÜNCELLEME VE KALDIRMA
+Yeni sürümü https://github.com/LogicalTR/WinDesk/releases adresinden
+indirin. Önce saat yanındaki WinDesk menüsünden Çıkış'ı seçin.
+Yeni kurucuyu aynı klasöre kurabilirsiniz. Otomatik güncelleme yoktur.
+Windows Ayarları > Uygulamalar bölümünden kaldırabilirsiniz.
+
+Gruplar ve saklanan kısayollar %LOCALAPPDATA%\WinDesk içindedir.
+Güncelleme ve kaldırma bu kullanıcı verilerini silmez.
+
+Bu ilk dağıtımın EXE dosyalarında Authenticode yayıncı imzası yoktur.
+SHA256SUMS.txt indirdiğiniz dosyaların bütünlüğünü kontrol etmek içindir.
+Windows 11'in ilk sağ tık menüsü için geliştirici MSIX eklentisi bu
+pakete dahil değildir; kurucu klasik masaüstü menüsünü sağlar.

@@ -1,0 +1,10 @@
+.tools/
+.ua/
+**/bin/
+**/obj/
+dist/
+artifacts/
+.vs/
+*.user
+*.pfx
+*.p12
