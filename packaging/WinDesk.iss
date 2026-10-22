@@ -67,6 +67,7 @@ Root: HKCU; Subkey: "Software\Classes\DesktopBackground\Shell\WinDesk\shell\03-s
 
 [Run]
 Filename: "{app}\WinDesk.exe"; Description: "WinDesk'i başlat"; Flags: nowait postinstall skipifsilent runasoriginaluser
+Filename: "{app}\WinDesk.exe"; Parameters: "--download-bybrowser"; Description: "ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [Code]
 function InitializeSetup(): Boolean;

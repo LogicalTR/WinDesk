@@ -41,6 +41,7 @@ internal static class UpdatePanelTests
     private static async Task TestAsync(Action<bool, string> check, string output)
     {
         Directory.CreateDirectory(output);
+        await ByBrowserWindowTests.RunAsync(check, output);
         var bytes = new byte[] { 1, 2, 3, 4, 5 };
         string sha = Convert.ToHexString(SHA256.HashData(bytes));
         string metadata = $$"""
@@ -53,7 +54,11 @@ internal static class UpdatePanelTests
             downloads++;
             return new HttpResponseMessage(failDownload ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
         }));
-        var panel = new UpdatePanel(new ReleaseUpdates(client), (_, file) => { check(File.Exists(file), "Installation receives a verified local file"); launches++; }, _ => consent, Path.Combine(output, "downloads"));
+        string? installed = null;
+        var panel = new UpdatePanel(new ReleaseUpdates(client), (update, file) => {
+            using var verified = ReleaseUpdates.OpenVerifiedInstaller(update, file);
+            check(File.Exists(file), "Installation receives a verified local file"); installed = file; launches++;
+        }, _ => consent, Path.Combine(output, "downloads"));
         Button Action() => panel.Children.OfType<WrapPanel>().Single().Children.OfType<Button>().First();
         await panel.RunAsync();
         check(downloads == 0 && launches == 0 && (string)Action().Content == "Güncellemeyi indir", "Checking never downloads or starts an installer");
@@ -65,6 +70,8 @@ internal static class UpdatePanelTests
         int priorDownloads = downloads;
         consent = true; await panel.RunAsync();
         check(launches == 1 && downloads == priorDownloads, "Later consent installs the verified file without downloading again");
+        File.WriteAllBytes(installed!, [5, 4, 3, 2, 1]); await panel.RunAsync();
+        check(launches == 1 && (string)Action().Content == "Güncellemeyi indir", "An update integrity failure stays in the UI and offers a fresh download");
 
         using var cancellationClient = new HttpClient(new WaitingHandler());
         var cancelPanel = new UpdatePanel(new ReleaseUpdates(cancellationClient), (_, _) => throw new Exception("Unexpected launch"), _ => true, output);

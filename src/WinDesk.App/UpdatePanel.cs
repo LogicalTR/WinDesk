@@ -85,7 +85,7 @@ internal sealed class UpdatePanel : StackPanel
         }
         catch (OperationCanceledException)
         { _status.Text = operation.IsCancellationRequested ? "İşlem iptal edildi." : "Bağlantı zaman aşımına uğradı. Yeniden deneyebilirsin."; }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException
             or System.Text.Json.JsonException or InvalidOperationException or System.Collections.Generic.KeyNotFoundException or Win32Exception or FormatException)
         { _installer = null; _status.Text = "Güncelleme tamamlanamadı. Yeniden deneyebilirsin. " + ex.Message; }
         finally

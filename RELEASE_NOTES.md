@@ -1,3 +1,20 @@
+# WinDesk 0.7.11
+
+Kurulum sonunda ByBrowser'ın en güncel sürümünü doğrudan indirme ve kurulum sihirbazını otomatik açma.
+
+- Son ekrana **ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)** seçeneği eklendi. Varsayılan olarak seçilidir; istemeyen kullanıcı işareti kaldırabilir.
+- **Bitti**'ye basıldığında ByBrowser'ın resmi GitHub yayınındaki en güncel kararlı x64 kurucu bulunur ve doğrudan indirilir. Tarayıcıda indirme sayfası açılmaz; sürüm numarası sabitlenmez.
+- İlerleme penceresi indirme durumunu gösterir; iptal ve hata sonrası yeniden deneme desteklenir. Dosyanın boyutu ve SHA-256 değeri doğrulanınca ByBrowser kurulum sihirbazı otomatik açılır. İndirme bozuksa kurucu çalıştırılmaz. Kurulum sihirbazı kendi normal adımlarıyla devam eder.
+- İndirilen dosyaya **Dosyayı göster** ile ulaşılabilir. Dosyalar `%LOCALAPPDATA%\WinDesk\Downloads\ByBrowser` altında saklanır. Sessiz WinDesk kurulumlarında ByBrowser indirilmez ve kurucusu başlatılmaz.
+- İndirme penceresi çalışan WinDesk'ten bağımsızdır; kayıtlı panel düzenini açmaz. Önceki sürümlerdeki kapanma süresi ve uygulama simgesi düzeltmeleri dahildir.
+- WinDesk güncellemesinde dosya doğrulama hataları da pencereyi kapatmadan yeniden indirme olanağı sunar.
+
+**Güncelleme:** **Ayarlar → Güncellemeleri denetle** veya `WinDesk-Setup-0.7.11-x64.exe` kullanılabilir.
+
+Doğrulama: 95 çekirdek/indirme ve 16 arayüz kontrolü geçti. Güncel sürümün değişmesi, hatalı yayın bilgisi, ağ hatası, iptal, bozuk dosya ve kurulum öncesi yeniden doğrulama sınandı. Windows 11'de kurulumun son ekranı, varsayılan seçim ve sessiz kurulum davranışı dosya/kayıt değişiklikleri kapatılmış bir Inno Setup önizlemesiyle kontrol edildi; gerçek ByBrowser 2.24.0 kurucusu indirildi, GitHub boyut/SHA-256 değerleriyle karşılaştırıldı ve kurulum sihirbazının otomatik açıldığı doğrulandı. Çalışan WinDesk düzeninin değişmediği kontrol edildi. Bu sürüm için tam kurulum/kaldırma ve Windows 10 VM testleri tekrarlanmadı.
+
+Dağıtım: Windows 10 22H2 (19045) ve üzeri x64; .NET çalışma zamanı dahildir. Türkçe Setup, taşınabilir EXE/ZIP, tam kaynak kodu arşivi ve `SHA256SUMS.txt` birlikte sunulur. EXE dosyaları henüz Authenticode ile imzalı değildir.
+
 # WinDesk 0.7.10
 
 Birleşik gruplar arasında geçiş artık seçilen otomatik kapanma süresini kullanır.

@@ -13,6 +13,8 @@ Windows 10 ve 11 için masaüstü grupları, akordiyon panelleri ve sürükle-b�
 
 Windows 10 22H2 (19045) ve üzeri, x64 gerekir. .NET çalışma zamanı dahildir. EXE dosyaları henüz Authenticode ile imzalı değildir.
 
+Kurulumun son ekranında **ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)** seçeneği vardır. Varsayılan olarak seçilidir; seçili bırakıp **Bitti**'ye bastığınızda [ByBrowser'ın en güncel kararlı sürümü](https://github.com/LogicalTR/ByBrowser-Releases/releases/latest) doğrudan indirilir. Dosya doğrulanınca ByBrowser kurulum sihirbazı otomatik açılır. İndirmek istemiyorsanız işareti kaldırın. İlerleme penceresinde iptal, yeniden deneme ve **Dosyayı göster** bulunur. Sessiz WinDesk kurulumunda ByBrowser indirilmez.
+
 ## Kullanım ve güncelleme
 
 Saat yanındaki WinDesk simgesinden yeni grup ekleyin veya ayarlara ulaşın. Kısayolları gruplara bırakın; başlıkları sürükleyerek birleştirin, sıralayın veya ayırın. Raptiye grubu açık tutar.

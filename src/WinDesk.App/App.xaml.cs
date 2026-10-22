@@ -51,6 +51,15 @@ public partial class App : Application
             MessageBox.Show(ex.Message, "WinDesk"); Shutdown(1); return;
         }
         base.OnStartup(e);
+        // Setup's optional download is a separate process. It must also work
+        // when the regular WinDesk instance is already running, without opening its workspace.
+        if (Array.IndexOf(e.Args, "--download-bybrowser") >= 0)
+        {
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
+            MainWindow = new ByBrowserDownloadWindow();
+            MainWindow.Show();
+            return;
+        }
         int commandFlag = Array.IndexOf(e.Args, "--command");
         string? startupCommand = commandFlag >= 0 && commandFlag + 1 < e.Args.Length ? e.Args[commandFlag + 1] : null;
         if (commandFlag >= 0 && (startupCommand is null || !SingleInstanceCommands.IsValid(startupCommand))) { Shutdown(2); return; }

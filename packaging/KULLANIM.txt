@@ -7,6 +7,15 @@ KURULUM
 WinDesk-Setup-<sürüm>-x64.exe dosyasını açın. Kurulum yalnız mevcut
 kullanıcı içindir ve yönetici izni istemez. Masaüstü kısayolu, klasik
 sağ tık menüsü ve Windows başlangıcı kurulumda seçilebilir.
+Son ekranda "ByBrowser'ı da indirmek ister misiniz?" seçeneği bulunur.
+Varsayılan olarak seçilidir. Seçili bırakıp Bitti'ye bastığınızda en güncel
+kararlı ByBrowser kurucusu resmi GitHub yayınından doğrudan indirilir.
+İlerleme penceresinden indirmeyi iptal edebilir veya yeniden deneyebilirsiniz.
+Dosya doğrulanınca ByBrowser kurulum sihirbazı otomatik açılır.
+İndirmek istemiyorsanız son ekrandaki ByBrowser işaretini kaldırın.
+"Dosyayı göster" indirilen dosyayı bulunduğu klasörde gösterir. Dosyalar
+%LOCALAPPDATA%\WinDesk\Downloads\ByBrowser altında saklanır.
+Sessiz kurulumda ByBrowser indirilmez.
 
 TAŞINABİLİR KULLANIM
 WinDesk.exe dosyasını kalıcı bir klasöre koyup açın. Taşınabilir sürüm
