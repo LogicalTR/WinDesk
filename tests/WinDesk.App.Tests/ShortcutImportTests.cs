@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using WinDesk.App;
 using WinDesk.Core;
 
@@ -27,6 +29,7 @@ internal static class ShortcutImportTests
         check(File.Exists(item.OwnedShortcutPath) && original.SequenceEqual(File.ReadAllBytes(item.OwnedShortcutPath)),
             "Private shell link preserves all native metadata without editing the desktop shortcut");
         check(importer.Import(source).OwnedShortcutPath == item.OwnedShortcutPath, "Repeated imports reuse the same verified private copy");
+        CheckIconFallback(root, importer, target, check);
         string movedLink = Path.Combine(moved, "Renamed.lnk"); File.Move(source, movedLink);
         check(ShortcutImporter.StartInfo(item).FileName == item.OwnedShortcutPath && ShellIcons.Get(ShortcutImporter.IconPath(item)) is not null,
             "Moving and renaming the desktop shortcut preserves launch routing and the shell icon");
@@ -86,5 +89,73 @@ internal static class ShortcutImportTests
     {
         WindowsShellLink.Create(file, target, arguments, workingDirectory,
             iconPath: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shell32.dll"), iconIndex: 3);
+    }
+
+    private static void CheckIconFallback(string root, ShortcutImporter importer, string target, Action<bool, string> check)
+    {
+        string iconFile = Path.Combine(root, "version-1.ico"), linkFile = Path.Combine(root, "Updated app.lnk");
+        using (var stream = File.Create(iconFile)) System.Drawing.SystemIcons.Warning.Save(stream);
+        WindowsShellLink.Create(linkFile, target, "--profile=work", root, iconPath: iconFile);
+        var item = importer.Import(linkFile);
+        byte[] original = File.ReadAllBytes(item.OwnedShortcutPath);
+        byte[] customPixels = IconPixels(ShellIcons.Get(ShortcutImporter.IconPath(item)));
+        byte[] targetPixels = IconPixels(ShellIcons.Get(target));
+        check(ShortcutImporter.IconPath(item) == item.OwnedShortcutPath && !customPixels.SequenceEqual(targetPixels),
+            "A valid custom icon is kept instead of being replaced by the application's icon");
+
+        File.Delete(iconFile); // An updater removes the old version's icon after import.
+        check(IconPixels(ShellIcons.Get(ShortcutImporter.IconPath(item))).SequenceEqual(targetPixels),
+            "Deleting a versioned icon after import displays the actual application icon, not a generic shell icon");
+        check(original.SequenceEqual(File.ReadAllBytes(item.OwnedShortcutPath)) && original.SequenceEqual(File.ReadAllBytes(linkFile)) &&
+            ShortcutImporter.StartInfo(item).FileName == item.OwnedShortcutPath && item.Arguments == "--profile=work",
+            "Icon fallback leaves both shortcut files and launch metadata unchanged");
+        check(IconPixels(ShellIcons.Get(ShortcutImporter.IconPath(new ShortcutModel { Path = linkFile }))).SequenceEqual(targetPixels),
+            "Legacy links with missing custom icons also fall back to their resolved application");
+
+        using (var stream = File.Create(iconFile)) System.Drawing.SystemIcons.Warning.Save(stream);
+        check(ShortcutImporter.IconPath(item) == item.OwnedShortcutPath,
+            "Restoring a custom icon makes it eligible again without rewriting the saved shortcut");
+
+        const string iconVariable = "WINDESK_ICON_FALLBACK_TEST";
+        string? previous = Environment.GetEnvironmentVariable(iconVariable);
+        try
+        {
+            Environment.SetEnvironmentVariable(iconVariable, root);
+            string environmentLink = Path.Combine(root, "Environment icon.lnk");
+            WindowsShellLink.Create(environmentLink, target, "", root, iconPath: "%" + iconVariable + "%\\version-1.ico");
+            var environmentItem = importer.Import(environmentLink);
+            check(ShortcutImporter.IconPath(environmentItem) == environmentItem.OwnedShortcutPath,
+                "Environment variables in existing custom icon paths are expanded before checking availability");
+            File.Delete(iconFile);
+            check(ShortcutImporter.IconPath(environmentItem) == target,
+                "A missing environment-based icon falls back to the application");
+        }
+        finally { Environment.SetEnvironmentVariable(iconVariable, previous); }
+
+        string defaultLink = Path.Combine(root, "Default icon.lnk");
+        WindowsShellLink.Create(defaultLink, target, "", root);
+        var defaultItem = importer.Import(defaultLink);
+        check(ShortcutImporter.IconPath(defaultItem) == defaultItem.OwnedShortcutPath,
+            "Links without explicit custom icons continue to use Windows shell icon handling");
+        string missingTargetLink = Path.Combine(root, "Missing target.lnk");
+        WindowsShellLink.Create(missingTargetLink, Path.Combine(root, "missing.exe"), "", root, iconPath: iconFile);
+        var missingTarget = importer.Import(missingTargetLink);
+        check(ShortcutImporter.IconPath(missingTarget) == missingTarget.OwnedShortcutPath,
+            "A missing application does not replace the shell icon with another broken path");
+        string invalidLink = Path.Combine(root, "Unreadable.lnk"); File.WriteAllText(invalidLink, "invalid shell link");
+        check(ShortcutImporter.IconPath(new ShortcutModel { Path = invalidLink }) == invalidLink,
+            "An unreadable shell link does not prevent the rest of the panel from loading");
+        check(ShortcutImporter.IconPath(new ShortcutModel { Path = target }) == target,
+            "Direct application entries retain their own icon path");
+    }
+
+    private static byte[] IconPixels(ImageSource? source)
+    {
+        if (source is not BitmapSource bitmap) throw new InvalidOperationException("Expected a rendered shell icon.");
+        var converted = new FormatConvertedBitmap(bitmap, PixelFormats.Bgra32, null, 0);
+        int stride = converted.PixelWidth * 4;
+        byte[] pixels = new byte[stride * converted.PixelHeight];
+        converted.CopyPixels(pixels, stride, 0);
+        return pixels;
     }
 }

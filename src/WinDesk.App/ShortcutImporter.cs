@@ -47,7 +47,26 @@ internal sealed class ShortcutImporter(string directory)
         return item;
     }
 
-    internal static string IconPath(ShortcutModel item) => File.Exists(item.OwnedShortcutPath) ? item.OwnedShortcutPath : item.Path;
+    internal static string IconPath(ShortcutModel item)
+    {
+        string path = File.Exists(item.OwnedShortcutPath) ? item.OwnedShortcutPath : item.Path;
+        if (!string.Equals(Path.GetExtension(path), ".lnk", StringComparison.OrdinalIgnoreCase)) return path;
+        try
+        {
+            var shortcut = WindowsShellLink.Read(path);
+            string icon = Environment.ExpandEnvironmentVariables(shortcut.IconPath).Trim('"');
+            // Updaters may delete versioned .ico files while our preserved link
+            // still points at them. SHGetFileInfo then returns a generic icon,
+            // not null, so detect the missing file before asking the shell.
+            // Leave implicit, relative and virtual-shell icons to Windows.
+            if (!Path.IsPathFullyQualified(icon) || File.Exists(icon)) return path;
+            string target = Environment.ExpandEnvironmentVariables(shortcut.Target);
+            if (Path.IsPathFullyQualified(target) && (File.Exists(target) || Directory.Exists(target))) return target;
+        }
+        catch (Exception ex) when (ex is COMException or IOException or UnauthorizedAccessException or ArgumentException)
+        { Trace.WriteLine($"WinDesk shortcut icon: {ex.Message}"); }
+        return path;
+    }
 
     internal static ProcessStartInfo StartInfo(ShortcutModel item)
     {

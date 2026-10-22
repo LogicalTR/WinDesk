@@ -12,7 +12,7 @@ internal static class WindowsShellLink
     private static readonly Guid ClassId = new("00021401-0000-0000-C000-000000000046");
     private const int BufferLength = 32768; // Windows' maximum process command line.
 
-    internal static (string Target, string Arguments, string WorkingDirectory, int WindowStyle) Read(string file)
+    internal static (string Target, string Arguments, string WorkingDirectory, int WindowStyle, string IconPath) Read(string file)
     {
         object instance = Activator.CreateInstance(Type.GetTypeFromCLSID(ClassId, true)!)!;
         try
@@ -22,11 +22,13 @@ internal static class WindowsShellLink
             var target = new StringBuilder(BufferLength);
             var arguments = new StringBuilder(BufferLength);
             var workingDirectory = new StringBuilder(BufferLength);
+            var iconPath = new StringBuilder(BufferLength);
             link.GetPath(target, target.Capacity, IntPtr.Zero, 4); // SLGP_RAWPATH
             link.GetArguments(arguments, arguments.Capacity);
             link.GetWorkingDirectory(workingDirectory, workingDirectory.Capacity);
             link.GetShowCmd(out int show);
-            return (target.ToString(), arguments.ToString(), workingDirectory.ToString(), show);
+            link.GetIconLocation(iconPath, iconPath.Capacity, out _);
+            return (target.ToString(), arguments.ToString(), workingDirectory.ToString(), show, iconPath.ToString());
         }
         finally { Marshal.FinalReleaseComObject(instance); }
     }

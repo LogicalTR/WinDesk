@@ -1,3 +1,18 @@
+# WinDesk 0.7.9
+
+Uygulama güncellemelerinden sonra kaybolan kısayol simgeleri için kalıcı düzeltme.
+
+- Bir uygulama güncellemesi eski sürüme ait özel simge dosyasını silerse WinDesk artık uygulamanın kendi simgesini gösterir. Örneğin ByBrowser güncellemesi sonrasında boş dosya simgesi görünmez; kısayolu panelden kaldırıp yeniden eklemek gerekmez.
+- Mevcut özel simgeler korunur. Simge dosyası yeniden kullanılabilir olduğunda sonraki simge yüklemesinde tekrar tercih edilir.
+- Kısayol dosyaları, açılış parametreleri, çalışma klasörü ve panel düzeni değiştirilmez. Ortam değişkeni içeren simge yolları ve eski kısayol kayıtları da desteklenir.
+- Uygulamanın kendisi de eksikse veya kısayol okunamıyorsa Windows'un normal simge davranışı korunur; diğer panel öğelerinin yüklenmesi engellenmez.
+
+**Güncelleme:** 0.7.7 ve 0.7.8 kullanıcıları **Ayarlar → Güncellemeleri denetle** ile güncelleyebilir. Daha eski sürümlerde `WinDesk-Setup-0.7.9-x64.exe` dosyasını indirip WinDesk'i kapatarak kurun.
+
+Doğrulama: Windows 11 üzerinde 26 kısayol içe aktarma/dışa aktarma ve simge kontrolü geçti. Güncelleme taklidinde özel simge dosyası silinerek gösterilen simgenin uygulamanın gerçek simgesiyle piksel düzeyinde eşleştiği doğrulandı. Geçerli özel simgeler, ortam değişkenli yollar, eksik hedefler, bozuk kısayollar ve açılış bilgilerinin korunması sınandı. Günlük kullanılan uygulama yeniden açıldı; kayıtlı düzenin değişmediği doğrulandı. Bu düzeltme için Windows 10 VM ve tam masaüstü etkileşim testleri tekrarlanmadı.
+
+Dağıtım: Windows 10 22H2 (19045) ve üzeri x64; .NET çalışma zamanı dahildir. Türkçe Setup, taşınabilir EXE/ZIP, tam kaynak kodu arşivi ve `SHA256SUMS.txt` birlikte sunulur. EXE dosyaları henüz Authenticode ile imzalı değildir.
+
 # WinDesk 0.7.8
 
 Çoklu ekranda panel konumunun yeniden açılışta korunması.

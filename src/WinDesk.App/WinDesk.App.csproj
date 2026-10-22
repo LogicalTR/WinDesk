@@ -11,7 +11,7 @@
     <ApplicationIcon>Assets\WinDesk.ico</ApplicationIcon>
     <AssemblyName>WinDesk</AssemblyName>
     <RootNamespace>WinDesk.App</RootNamespace>
-    <Version>0.7.8</Version>
+    <Version>0.7.9</Version>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../WinDesk.Core/WinDesk.Core.csproj" /></ItemGroup>
 </Project>
