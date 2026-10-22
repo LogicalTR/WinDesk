@@ -44,6 +44,7 @@ public sealed class DesktopPanel : UserControl, IDisposable
     private int _openMenus;
     private DesktopNative.Point _dragStart;
     private double _dragX, _dragY;
+    private double _screenX, _screenY;
     private App Controller => App.CurrentApp;
     internal IntPtr Handle => _host?.Handle ?? IntPtr.Zero;
     internal IntPtr DesktopParent => _host?.Parent ?? IntPtr.Zero;
@@ -54,17 +55,22 @@ public sealed class DesktopPanel : UserControl, IDisposable
     internal bool IsSectionExpanded(Guid id) => _sections.Single(s => s.Model.Id == id).IsExpanded;
     internal bool IsDropAvailable => !_closed && _requestedVisible && _host is { IsAlive: true } && DesktopNative.IsWindowVisible(Handle);
     internal IEnumerable<PanelSection> Sections => _sections;
+    internal Func<System.Drawing.Point, System.Drawing.Rectangle> WorkingAreaAt { get; set; } =
+        point => System.Windows.Forms.Screen.FromPoint(point).WorkingArea;
     internal bool TryGetDragBounds(out DesktopNative.Rect bounds) =>
         DesktopNative.GetWindowRect(_draggedSectionId.HasValue ? _dragPreview?.Handle ?? IntPtr.Zero : Handle, out bounds);
     internal Guid? ActiveSectionId { get; private set; }
     internal int? SectionDropIndex { get; private set; }
     internal double ClosedHeight => 2 + _models.Count * 44;
-    internal double ScreenX { get => _stack?.X ?? _models[0].X; private set { if (_stack is not null) _stack.X = value; else _models[0].X = value; } }
-    internal double ScreenY { get => _stack?.Y ?? _models[0].Y; private set { if (_stack is not null) _stack.Y = value; else _models[0].Y = value; } }
+    internal double ScreenX => _screenX;
+    internal double ScreenY => _screenY;
+    private double SavedX { get => _stack?.X ?? _models[0].X; set { if (_stack is not null) _stack.X = value; else _models[0].X = value; } }
+    private double SavedY { get => _stack?.Y ?? _models[0].Y; set { if (_stack is not null) _stack.Y = value; else _models[0].Y = value; } }
 
     internal DesktopPanel(IEnumerable<PanelModel> models, PanelStack? stack = null)
     {
         _models = models.ToList(); _stack = stack;
+        _screenX = SavedX; _screenY = SavedY;
         Width = 336; Height = ClosedHeight;
         Foreground = ManagerWindow.Brush("#EDF1F7");
         FontFamily = new FontFamily("Segoe UI");
@@ -205,7 +211,7 @@ public sealed class DesktopPanel : UserControl, IDisposable
         get
         {
             double scale = _host?.Scale ?? 1;
-            var work = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)(ScreenX * scale), (int)(ScreenY * scale))).WorkingArea;
+            var work = WorkingAreaAt(new System.Drawing.Point((int)(ScreenX * scale), (int)(ScreenY * scale)));
             return Math.Max(46, work.Height / scale - 8);
         }
     }
@@ -395,21 +401,27 @@ public sealed class DesktopPanel : UserControl, IDisposable
     }
     internal void MoveTo(double x, double y)
     {
-        ScreenX = x; ScreenY = y; ClampPosition(); UpdateBounds();
+        SavedX = x; SavedY = y; ClampPosition();
+        // Only an explicit move changes the preferred location. A temporary
+        // monitor/Explorer fallback must not replace it during startup or save.
+        SavedX = ScreenX; SavedY = ScreenY;
+        UpdateBounds();
         _positionTimer.Stop(); _positionTimer.Start();
     }
 
     private void ClampPosition(double? targetHeight = null)
     {
+        _screenX = SavedX; _screenY = SavedY;
         if (_host is null || !_host.IsAlive) return;
         double scale = _host.Scale;
-        var work = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)(ScreenX * scale), (int)(ScreenY * scale))).WorkingArea;
-        DesktopNative.GetClientRect(_host.Parent, out var rect);
-        var origin = new DesktopNative.Point(0, 0); DesktopNative.ClientToScreen(_host.Parent, ref origin);
+        var work = WorkingAreaAt(new System.Drawing.Point((int)(ScreenX * scale), (int)(ScreenY * scale)));
+        if (!DesktopNative.GetClientRect(_host.Parent, out var rect)) return;
+        var origin = new DesktopNative.Point(0, 0);
+        if (!DesktopNative.ClientToScreen(_host.Parent, ref origin)) return;
         double left = Math.Max(work.Left, origin.X) / scale, top = Math.Max(work.Top, origin.Y) / scale;
         double right = Math.Min(work.Right, origin.X + rect.Right) / scale, bottom = Math.Min(work.Bottom, origin.Y + rect.Bottom) / scale;
-        ScreenX = Math.Clamp(ScreenX, left, Math.Max(left, right - Width));
-        ScreenY = Math.Clamp(ScreenY, top, Math.Max(top, bottom - Math.Min(targetHeight ?? Height, MaximumHeight)));
+        _screenX = Math.Clamp(ScreenX, left, Math.Max(left, right - Width));
+        _screenY = Math.Clamp(ScreenY, top, Math.Max(top, bottom - Math.Min(targetHeight ?? Height, MaximumHeight)));
     }
 
     private void UpdateBounds() => _host?.SetBounds(ScreenX, ScreenY, Width, Height);

@@ -17,6 +17,8 @@ Windows 10 22H2 (19045) ve üzeri, x64 gerekir. .NET çalışma zamanı dahildir
 
 Saat yanındaki WinDesk simgesinden yeni grup ekleyin veya ayarlara ulaşın. Kısayolları gruplara bırakın; başlıkları sürükleyerek birleştirin, sıralayın veya ayırın. Raptiye grubu açık tutar.
 
+Paneller ve birleşik alanlar yeniden açıldığında kayıtlı ekran konumlarına döner. İkinci ekran geç algılansa bile tercih edilen yer korunur.
+
 **Ayarlar → Güncellemeleri denetle** ile yeni sürümü bulun ve indirin. İndirme doğrulandıktan sonra onayınızla WinDesk kapanır ve kurulum açılır. Taşınabilir uygulamada bu seçenek kullanıcı hesabına kurulum yapar. Güncelleme ve kaldırma `%LOCALAPPDATA%\WinDesk` içindeki düzeni ve saklanan kısayolları silmez.
 
 0.7.6 ve daha eski sürümlerde güncelleme düğmesi yoktur; yukarıdaki kurucuyu bir kez indirip çalışan WinDesk'i kapatarak kurun.

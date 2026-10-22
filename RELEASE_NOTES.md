@@ -1,3 +1,18 @@
+# WinDesk 0.7.8
+
+Çoklu ekranda panel konumunun yeniden açılışta korunması.
+
+- İkinci ekrana taşınan panel veya birleşik alanın kayıtlı konumu, açılışta kullanılan geçici görünür konumla artık değiştirilmez.
+- Ekran geç algılanırsa veya masaüstü bağlantısı yeniden kurulursa alanın tercih edilen yeri korunur; ekran hazır olduğunda alan kayıtlı konumuna döner.
+- Paneli fareyle yeniden taşımanız yeni konumu kaydeder. Mevcut gruplar, kısayollar, sabitleme ve diğer ayarlar korunur; düzen dosyası biçimi değişmez.
+- 0.7.7 ve önceki sürümlerdeki uygulama içinden güncelleme, Türkçe/Unicode kısayol ve Windows 10 uyumluluk düzeltmeleri bu sürüme dahildir.
+
+**Güncelleme:** 0.7.7 kullanıcıları **Ayarlar → Güncellemeleri denetle** ile güncelleyebilir. Daha eski sürümlerde `WinDesk-Setup-0.7.8-x64.exe` dosyasını indirip WinDesk'i kapatarak kurun.
+
+Doğrulama: Windows 11 üzerinde 81 çekirdek/güncelleme ve 139 WPF/masaüstü kontrolü geçti. İki gerçek ekranın sağ kenarında kaydetme/yükleme, tek panel ve birleşik alan, masaüstüne yeniden bağlanma, ekranın geç algılanmasının taklidi ve geçici konumun kayıtlı yerin üzerine yazılmaması sınandı. Günlük kullanılan uygulama yeniden açılarak ikinci ekranın en sağındaki konumu ve kullanıcı düzeninin değişmediği doğrulandı. Bilgisayar yeniden başlatılmadı; bu sürüm için Windows 10 VM ve karma DPI doğrulaması tekrarlanmadı.
+
+Dağıtım: Windows 10 22H2 (19045) ve üzeri x64; .NET çalışma zamanı dahildir. Türkçe Setup, taşınabilir EXE/ZIP, tam kaynak kodu arşivi ve `SHA256SUMS.txt` birlikte sunulur. EXE dosyaları henüz Authenticode ile imzalı değildir.
+
 # WinDesk 0.7.7
 
 Uygulama içinden güncelleme ve tek komutla arka planda yayın.

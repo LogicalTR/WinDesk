@@ -15,6 +15,10 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "--position-test") {
+            try { PositionTests.Run(Check, Path.GetFullPath(args[1])); Console.WriteLine($"{_assertions} position assertions passed."); return 0; }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        }
         if (args.Length == 2 && args[0] == "--installed-update-test") {
             try { return InstalledUpdateTests.Run(Path.GetFullPath(args[1])); }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
@@ -57,6 +61,7 @@ internal static class Program
                     await DisplayBehaviorTests.Run(app, Check);
                     Console.WriteLine($"{_assertions} display behavior assertions passed."); return;
                 }
+                PositionTests.Run(Check, Path.Combine(args[Array.IndexOf(args, "--data-dir") + 1], "positions"));
                 var panel = app.DesktopPanels.First();
                 var first = app.Workspace.Panels[0];
                 if (panel.Handle == IntPtr.Zero) Console.WriteLine(DesktopNative.DescribeDesktop() + app.DesktopStatus);
