@@ -5,14 +5,16 @@ Windows 10 ve 11 için masaüstü grupları, akordiyon panelleri ve sürükle-b�
 
 ## İndir
 
-**Güncel sürüm: 0.7.10** · [Sürüm notları](https://github.com/LogicalTR/WinDesk/releases/tag/v0.7.10)
+**Güncel sürüm: 0.7.11** · [Sürüm notları](https://github.com/LogicalTR/WinDesk/releases/tag/v0.7.11)
 
-- [Türkçe kurulum](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.10/WinDesk-Setup-0.7.10-x64.exe)
-- [Taşınabilir EXE](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.10/WinDesk-0.7.10-win-x64.exe)
-- [Taşınabilir ZIP ve kullanım kılavuzu](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.10/WinDesk-0.7.10-win-x64.zip)
-- [SHA-256 doğrulama listesi](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.10/SHA256SUMS.txt)
+- [Türkçe kurulum](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.11/WinDesk-Setup-0.7.11-x64.exe)
+- [Taşınabilir EXE](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.11/WinDesk-0.7.11-win-x64.exe)
+- [Taşınabilir ZIP ve kullanım kılavuzu](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.11/WinDesk-0.7.11-win-x64.zip)
+- [SHA-256 doğrulama listesi](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.11/SHA256SUMS.txt)
 
 Windows 10 22H2 (19045) ve üzeri, x64 gerekir. .NET çalışma zamanı dahildir. EXE dosyaları henüz Authenticode ile imzalı değildir.
+
+Kurulumun son ekranında **ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)** seçeneği vardır. Varsayılan olarak seçilidir; seçili bırakıp **Bitti**'ye bastığınızda [ByBrowser'ın en güncel kararlı sürümü](https://github.com/LogicalTR/ByBrowser-Releases/releases/latest) doğrudan indirilir. Dosya doğrulanınca ByBrowser kurulum sihirbazı otomatik açılır. İndirmek istemiyorsanız işareti kaldırın. İlerleme penceresinde iptal, yeniden deneme ve **Dosyayı göster** bulunur. Sessiz WinDesk kurulumunda ByBrowser indirilmez.
 
 ## Kullanım ve güncelleme
 
@@ -32,5 +34,5 @@ Masaüstü menüsü Windows 10'da **Sağ tık → WinDesk**, Windows 11'de **Sa�
 
 ## Kaynak kodu
 
-Bu depo yayınları dağıtır. Tam C# / WPF projesi, testler ve derleme betikleri [WinDesk-0.7.10-source.zip](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.10/WinDesk-0.7.10-source.zip) dosyasındadır. GitHub'ın otomatik **Source code** arşivleri yalnız dağıtım deposunu içerir.
+Bu depo yayınları dağıtır. Tam C# / WPF projesi, testler ve derleme betikleri [WinDesk-0.7.11-source.zip](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.11/WinDesk-0.7.11-source.zip) dosyasındadır. GitHub'ın otomatik **Source code** arşivleri yalnız dağıtım deposunu içerir.
 <!-- windesk-release:end -->
