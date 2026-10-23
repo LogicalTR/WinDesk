@@ -37,6 +37,8 @@ Before rerunning after changes, republish the tests into `shared/bundle/tests/ap
 
 See the root `RELEASE_NOTES.md` for observed results and remaining test limitations.
 
+The `windows-security` case records Authenticode findings and runs a non-remediating Defender scan. Include `tools/release-signing.ps1` and `tools/test-windows-security.ps1` in the bundle. An unavailable scanner fails this case instead of being reported as clean. Unsigned local candidates can be built with `build-release.ps1 -Unsigned`, then copied from `dist/unsigned/<version>` to the isolated bundle's `dist/releases/<version>`. A passing install test does not establish SmartScreen reputation; perform a separate Internet-zone/Explorer launch check. Windows 10 does not exercise Windows 11 Smart App Control. See [release signing](../RELEASE-SIGNING.md).
+
 ## Installed update transition
 
 The bundle must also contain the published 0.7.6 Setup alongside the candidate release. `test-installed-update.ps1` installs 0.7.6 into a custom directory, seeds a Unicode workspace/owned shortcut, upgrades with the candidate's actual installer, and checks executable hashes, remembered directory/tasks, menu commands and preserved data. It then runs `--installed-update-test` to exercise production download verification, save-before-launch, graceful shutdown and real Setup execution, followed by a restart and uninstall/data preservation check.

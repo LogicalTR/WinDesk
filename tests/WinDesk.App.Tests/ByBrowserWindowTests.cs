@@ -63,12 +63,39 @@ internal static class ByBrowserWindowTests
         bool closed = false; cancelling.Closed += (_, _) => closed = true;
         pending = cancelling.DownloadAsync(); cancelling.Close(); await pending;
         check(closed, "Closing during a download waits for cancellation before closing the helper");
+
+        bool blockAssets = true, corruptFallback = false;
+        int fallbackLaunches = 0;
+        using var limitedClient = new HttpClient(new Handler(request => {
+            string url = request.RequestUri!.AbsoluteUri;
+            if (url == ByBrowserDownloads.LatestApi || blockAssets) return new(HttpStatusCode.Forbidden);
+            if (url == ByBrowserDownloads.LatestRelease)
+                return new(HttpStatusCode.OK) { RequestMessage = new HttpRequestMessage(HttpMethod.Head,
+                    ByBrowserDownloads.RepositoryUrl + "/releases/tag/v2.23.0") };
+            if (url.EndsWith(".sha256", StringComparison.Ordinal))
+                return new(HttpStatusCode.OK) { Content = new StringContent(digest + "  ByBrowser-Setup-2.23.0-x64.exe\n") };
+            return new(HttpStatusCode.OK) { Content = new ByteArrayContent(corruptFallback ? [7, 5, 3, 1] : bytes) };
+        }));
+        var limitedWindow = new ByBrowserDownloadWindow(new(limitedClient), Path.Combine(directory, "bybrowser-rate-limit"), _ => fallbackLaunches++);
+        await limitedWindow.DownloadAsync();
+        check(fallbackLaunches == 0 && Action(limitedWindow).IsEnabled && Status(limitedWindow, "erişimi geçici olarak sınırladı"),
+            "When public assets are also blocked, the download window offers retry with a Turkish error");
+        blockAssets = false;
+        await limitedWindow.DownloadAsync();
+        await Dispatcher.Yield(DispatcherPriority.Background);
+        check(fallbackLaunches == 1 && Status(limitedWindow, "kurulum sihirbazı açıldı"),
+            "A rate-limited API still downloads and auto-launches a verified installer through the public release fallback");
+        corruptFallback = true;
+        await limitedWindow.DownloadAsync();
+        check(fallbackLaunches == 1 && Status(limitedWindow, "indirilemedi") && Action(limitedWindow).IsEnabled,
+            "The rate-limit fallback never launches installer bytes that fail SHA-256 verification");
+        limitedWindow.Close();
     }
 
     private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
-        { token.ThrowIfCancellationRequested(); var response = respond(request); response.RequestMessage = request; return Task.FromResult(response); }
+        { token.ThrowIfCancellationRequested(); var response = respond(request); response.RequestMessage ??= request; return Task.FromResult(response); }
     }
     private sealed class WaitingHandler(string metadata) : HttpMessageHandler
     {

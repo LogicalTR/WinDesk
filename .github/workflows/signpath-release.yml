@@ -1,0 +1,125 @@
+name: SignPath release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: signpath-production
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.repository == 'LogicalTR/WinDesk' && github.ref == 'refs/heads/main'
+    runs-on: windows-2025
+    environment: signpath-production
+    timeout-minutes: 100
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      SIGNPATH_CERTIFICATE_SHA1: ${{ vars.SIGNPATH_CERTIFICATE_SHA1 }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: global.json
+      - name: Check production configuration and source
+        env:
+          SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          if (-not $env:SIGNPATH_ORGANIZATION_ID -or -not $env:SIGNPATH_API_TOKEN -or
+              $env:SIGNPATH_CERTIFICATE_SHA1 -notmatch '^[A-Fa-f0-9]{40}$') {
+            throw 'Complete SignPath acceptance and signpath-production environment configuration first.'
+          }
+          if ((git rev-parse HEAD) -cne $env:GITHUB_SHA -or (git status --porcelain)) { throw 'Source is not the workflow commit.' }
+      - name: Tests before signing
+        run: |
+          dotnet run --project tests/WinDesk.Core.Tests -c Release
+          if ($LASTEXITCODE) { throw 'Core tests failed.' }
+          ./tests/Test-ReleaseSigning.ps1
+          ./tests/Test-PublishRelease.ps1
+          ./tests/Test-SignPath.ps1
+          dotnet run --project tests/WinDesk.App.Tests -c Release -- --update-test "$env:RUNNER_TEMP/update-test"
+          if ($LASTEXITCODE) { throw 'Update UI tests failed.' }
+          dotnet run --project tests/WinDesk.App.Tests -c Release --no-build -- --close-delay-test
+          if ($LASTEXITCODE) { throw 'Close delay tests failed.' }
+      - name: Build app and generated Inno runtime
+        id: prepare
+        run: ./tools/signpath-release.ps1 -Stage Prepare
+      - name: Upload components with GitHub provenance
+        id: components
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unsigned-components
+          path: artifacts/signpath/unsigned-components/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Request component signatures (manual SignPath approval)
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: WinDesk
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: components
+          github-artifact-id: ${{ steps.components.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 1800
+          output-artifact-directory: artifacts/signpath/signed-components
+          parameters: |
+            product-version: ${{ toJSON(steps.prepare.outputs.product-version) }}
+      - name: Verify components and assemble installer
+        run: ./tools/signpath-release.ps1 -Stage Assemble -SignedDirectory artifacts/signpath/signed-components
+      - name: Upload installer with GitHub provenance
+        id: installer
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unsigned-setup
+          path: artifacts/signpath/unsigned-setup/*.exe
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Request installer signature (manual SignPath approval)
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: WinDesk
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.installer.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 1800
+          output-artifact-directory: artifacts/signpath/signed-setup
+          parameters: |
+            version: ${{ toJSON(steps.prepare.outputs.version) }}
+            product-version: ${{ toJSON(steps.prepare.outputs.product-version) }}
+      - name: Verify and package the signed release
+        run: |
+          if ((git status --porcelain) -or (git rev-parse HEAD) -cne $env:GITHUB_SHA) { throw 'Source changed during build.' }
+          ./tools/signpath-release.ps1 -Stage Complete -SignedDirectory artifacts/signpath/signed-setup
+      - name: Verify installed payload and signed uninstaller on the disposable runner
+        run: ./tools/test-release.ps1 -ReleaseDirectory artifacts/signpath/release -RequireSignature -InstallerOnly
+      - name: Upload verified release for maintainer review
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: WinDesk-${{ steps.prepare.outputs.version }}-signed-release
+          path: artifacts/signpath/release/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Signing audit record
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signing-build-record
+          path: |
+            artifacts/signpath/manifest.json
+            artifacts/signpath/inno-prepare.log
+            artifacts/setup-test-*/diagnostics.txt
+          if-no-files-found: ignore
+          retention-days: 30

@@ -48,6 +48,7 @@ public sealed class DesktopPanel : UserControl, IDisposable
     private App Controller => App.CurrentApp;
     internal IntPtr Handle => _host?.Handle ?? IntPtr.Zero;
     internal IntPtr DesktopParent => _host?.Parent ?? IntPtr.Zero;
+    internal bool IsTopmost => _host?.IsTopmost == true;
     internal Guid Id => _stack?.Id ?? _models[0].Id;
     internal Guid? DraggedSectionId => _draggedSectionId;
     internal double DetachX => _detachX;
@@ -123,13 +124,13 @@ public sealed class DesktopPanel : UserControl, IDisposable
 
     internal bool Contains(Guid panelId) => _models.Any(p => p.Id == panelId);
 
-    internal void ConnectToDesktop(IntPtr desktop)
+    internal void ConnectToDesktop(IntPtr desktop, bool topmost = false)
     {
         if (_closed) return;
-        if (_host is null || !_host.IsAlive || _host.Parent != desktop)
+        if (_host is null || !_host.IsAlive || _host.Parent != desktop || _host.IsTopmost != topmost)
         {
             DisconnectFromDesktop();
-            _host = new DesktopPanelHost(desktop, this, "WinDesk · " + (_stack?.Name ?? _models[0].Name));
+            _host = new DesktopPanelHost(desktop, this, "WinDesk · " + (_stack?.Name ?? _models[0].Name), topmost);
         }
         ClampPosition(); UpdateSize(); UpdateBounds();
         _host.SetVisible(_requestedVisible);
@@ -324,7 +325,7 @@ public sealed class DesktopPanel : UserControl, IDisposable
         _dragPreviewHint = new TextBlock { Text = "Grubu dışarı taşı", FontSize = 11, Foreground = ManagerWindow.Brush("#93E7D5"), Margin = new Thickness(0, 4, 0, 0) };
         text.Children.Add(_dragPreviewHint);
         var content = new Border { Width = Width, Height = 62, Child = text, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), BorderBrush = ManagerWindow.Brush(model.Color), Background = ManagerWindow.Brush("#1A3030") };
-        _dragPreview = new DesktopPanelHost(_host.Parent, content, "WinDesk · Grubu taşı");
+        _dragPreview = new DesktopPanelHost(_host.Parent, content, "WinDesk · Grubu taşı", _host.IsTopmost);
     }
     internal int? SectionInsertionIndex(DesktopNative.Point point)
     {
@@ -388,6 +389,14 @@ public sealed class DesktopPanel : UserControl, IDisposable
     {
         if (!DesktopNative.GetCursorPos(out var point)) commit = false;
         EndDrag(point, commit);
+    }
+    internal void EndHeaderPress(Guid sectionId, DesktopNative.Point point)
+    {
+        bool clicked = !_dragMoved && Contains(sectionId);
+        EndDrag(point);
+        // Mouse-down pauses hover while deciding whether this is a drag. A
+        // title click must still open the requested section when it ends.
+        if (clicked) Expand(sectionId);
     }
     internal void EndDrag(DesktopNative.Point point, bool commit = true)
     {

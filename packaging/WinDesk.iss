@@ -35,7 +35,26 @@ AppMutex=Local\WinDesk.Desktop.v1
 CloseApplications=no
 RestartApplications=no
 Uninstallable=yes
+LicenseFile=..\LICENSE
+InfoBeforeFile=PRIVACY.txt
 VersionInfoVersion={#AppVersion}.0
+VersionInfoProductName=WinDesk
+VersionInfoProductVersion={#AppVersion}.0
+VersionInfoProductTextVersion={#AppVersion}.0
+#ifdef SignRelease
+SignTool=WinDeskRelease
+SignedUninstaller=yes
+#else
+  #ifdef ExternalSigning
+SignedUninstaller=yes
+SignedUninstallerDir={#ExternalSigning}
+  #else
+    #ifndef UnsignedBuild
+    #error Signing is required. Use build-release.ps1 or explicitly select -Unsigned for local tests.
+    #endif
+SignedUninstaller=no
+  #endif
+#endif
 
 [Languages]
 Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
@@ -48,6 +67,10 @@ Name: "startup"; Description: "Windows oturumu açıldığında WinDesk'i başla
 [Files]
 Source: "{#AppSource}\WinDesk.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "KULLANIM.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "PRIVACY.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\THIRD-PARTY-NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#AppSource}\licenses\*"; DestDir: "{app}\licenses"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{group}\WinDesk"; Filename: "{app}\WinDesk.exe"; WorkingDir: "{app}"
@@ -67,7 +90,7 @@ Root: HKCU; Subkey: "Software\Classes\DesktopBackground\Shell\WinDesk\shell\03-s
 
 [Run]
 Filename: "{app}\WinDesk.exe"; Description: "WinDesk'i başlat"; Flags: nowait postinstall skipifsilent runasoriginaluser
-Filename: "{app}\WinDesk.exe"; Parameters: "--download-bybrowser"; Description: "ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)"; Flags: nowait postinstall skipifsilent runasoriginaluser
+Filename: "{app}\WinDesk.exe"; Parameters: "--download-bybrowser"; Description: "ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)"; Flags: unchecked nowait postinstall skipifsilent runasoriginaluser
 
 [Code]
 function InitializeSetup(): Boolean;

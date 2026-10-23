@@ -1,3 +1,33 @@
+# WinDesk 0.7.13
+
+Ctrl + Shift ile panelleri öne getirme, grup başlıklarının açılması ve doğru kullanıcı düzeninin korunması.
+
+- **Ctrl + Shift** tuşlarına birlikte basıp bırakınca tüm paneller diğer pencerelerin önüne gelir; tekrar kullanınca masaüstüne geri döner. Konumlar ve raptiyeler korunur. Sağ/sol tuşlar desteklenir; Ctrl + Shift + T gibi ek tuşlu kısayollar bunu tetiklemez.
+- İlk grup açıkken başka bir başlığa tıklamak bekleyen açılmayı iptal etmek yerine seçilen grubu doğrudan açar. Başlığı sürüklemek sıralama/ayırma işlevini korur. Fareyle üzerine gelme gecikmesi Ayarlar'daki süreyi kullanmaya devam eder.
+- Paketlenmiş bir başlatıcı Windows dosya erişimini eski bir önbelleğe yönlendiriyorsa WinDesk düzeni okumadan önce normal Explorer bağlamında yeniden başlar. Böylece mevcut kısayolların eski bir düzen açıldığı için kaybolmuş görünmesi engellenir; kullanıcı dosyaları birleştirilmez veya değiştirilmez.
+- 0.7.12'de hazırlanan ByBrowser indirme düzeltmeleri, isteğe bağlı indirme seçimi ve lisans/gizlilik bildirimleri dahildir.
+
+**Güncelleme:** **Ayarlar → Güncellemeleri denetle** veya `WinDesk-Setup-0.7.13-x64.exe`. Gruplar ve saklanan kısayollar korunur.
+
+Doğrulama: Windows 11 üzerinde 118 çekirdek, 252 WPF/masaüstü, 4 başlangıç bağlamı ve 39 imza/yayın kontrolü geçti. Windows 10 22H2 sanal makinesindeki 14 aşama geçti; aynı 118 çekirdek ve 252 masaüstü kontrolünün yanında gerçek kurulum, 0.7.6'dan 0.7.13'e güncelleme, uygulama içi güncelleme devri, kaldırma, kısayolların korunması ve Explorer yeniden başlatması sınandı. Defender paketlerde tehdit bulmadı. SmartScreen itibarı ve üretim imzası bu kontrollerin kapsamında değildir.
+
+SignPath Foundation kabulü ve üretim yapılandırması henüz tamamlanmadı. [İmzalama politikası](https://github.com/LogicalTR/WinDesk/blob/main/CODE_SIGNING.md).
+
+# WinDesk 0.7.12
+
+MIT lisansı, gizlilik/üçüncü taraf bildirimleri ve GitHub üzerinde SignPath yayın hazırlığı eklendi. Uygulama, kaldırıcı ve Setup için iki aşamalı imzalama ve dosya bütünlüğü kontrolleri hazırlandı. SignPath kabulü ve ilk imzalı yayın henüz tamamlanmadı. [Code signing policy](https://github.com/LogicalTR/WinDesk/blob/main/CODE_SIGNING.md).
+
+ByBrowser indirme seçeneği artık varsayılan olarak kapalıdır; kullanıcı seçtiğinde aşağıdaki indirme akışı çalışır. Kurulumda gizlilik bilgileri gösterilir ve paketlere lisans bildirimleri eklenir.
+
+ByBrowser indirmesinin GitHub API istek sınırında durması düzeltildi.
+
+- GitHub API 403 veya 429 döndürürse güncel kararlı sürüm resmi **Latest** yayın bağlantısından bulunur. Aynı sürümün `.sha256` dosyası, kurucu boyutu ve kurucusu doğrudan GitHub yayınından alınır; hesap veya token gerekmez.
+- Tüm dosyalar bulunan sürüme sabitlenir. Yayın sırasında yeni bir sürüm çıksa bile doğrulama bilgisi ile kurucu karışmaz. Sürüm numarası uygulamaya sabitlenmez.
+- Dosya adı, kaynak depo, kararlı sürüm, boyut ve SHA-256 kontrolleri korunur. İptal ve yeniden deneme çalışır; doğrulanmayan dosya çalıştırılmaz.
+- Yayın dosyalarına erişim de 403/429 ile sınırlanırsa ham İngilizce HTTP hatası yerine Türkçe açıklama gösterilir.
+
+Doğrulama: 118 çekirdek/indirme ve 19 arayüz kontrolü geçti. API yanıtı 403 olarak zorlanırken gerçek ByBrowser 2.24.0 kurucusunun 112.487.647 baytı resmi yayından indirildi ve SHA-256 doğrulaması geçti. Bu canlı kontrolde kurucu çalıştırılmadı; otomatik başlatma, bozuk dosyayı engelleme ve yeniden deneme arayüz testlerinde sınandı. Yerel EXE/ZIP/Setup paketleri hazırlandı. SignPath hazırlığından sonra Windows 10 22H2 sanal makinesindeki 13 aşama (kurulum, masaüstü, güncelleme, kaldırma ve Defender dahil) geçti. Windows 11 üzerinde 118 çekirdek, 19 güncelleme arayüzü, 18 kapanma süresi ve 39 imza/yayın kontrolü geçti; Defender tehdit bulmadı. Gerçek EXE/kaldırıcı/Setup imza gömme provası yalnız bellekte üretilen güvenilmeyen test anahtarıyla yapıldı ve üretim doğrulayıcısı bu imzayı reddetti. Workflow sözdizimi ve SignPath XML şemaları doğrulandı. Canlı GitHub/SignPath üretim imzalama, ilk hizmet metadata kabulü ve imzalı dosyayla SmartScreen testi henüz yapılmadı.
+
 # WinDesk 0.7.11
 
 Kurulum sonunda ByBrowser'ın en güncel sürümünü doğrudan indirme ve kurulum sihirbazını otomatik açma.

@@ -2,17 +2,22 @@ WinDesk — Windows 10 ve 11 masaüstü düzenleyici
 
 Gereksinim: Windows 10 22H2 (19045) veya üzeri, x64.
 .NET çalışma zamanı pakete dahildir; ayrıca .NET kurmanız gerekmez.
+WinDesk MIT lisanslıdır. LICENSE, PRIVACY.txt ve THIRD-PARTY-NOTICES.md
+dosyalarını inceleyebilirsiniz. Üçüncü taraf lisansları licenses klasöründedir.
+Tek EXE'de bu bildirimler .NET kaynakları olarak da gömülüdür; kolayca okumak
+için ZIP paketini kullanın. Code signing policy:
+https://github.com/LogicalTR/WinDesk/blob/main/CODE_SIGNING.md
 
 KURULUM
 WinDesk-Setup-<sürüm>-x64.exe dosyasını açın. Kurulum yalnız mevcut
 kullanıcı içindir ve yönetici izni istemez. Masaüstü kısayolu, klasik
 sağ tık menüsü ve Windows başlangıcı kurulumda seçilebilir.
 Son ekranda "ByBrowser'ı da indirmek ister misiniz?" seçeneği bulunur.
-Varsayılan olarak seçilidir. Seçili bırakıp Bitti'ye bastığınızda en güncel
+Varsayılan olarak kapalıdır. Kendiniz seçip Bitti'ye bastığınızda en güncel
 kararlı ByBrowser kurucusu resmi GitHub yayınından doğrudan indirilir.
 İlerleme penceresinden indirmeyi iptal edebilir veya yeniden deneyebilirsiniz.
 Dosya doğrulanınca ByBrowser kurulum sihirbazı otomatik açılır.
-İndirmek istemiyorsanız son ekrandaki ByBrowser işaretini kaldırın.
+İndirmek istemiyorsanız ByBrowser seçeneğini kapalı bırakın.
 "Dosyayı göster" indirilen dosyayı bulunduğu klasörde gösterir. Dosyalar
 %LOCALAPPDATA%\WinDesk\Downloads\ByBrowser altında saklanır.
 Sessiz kurulumda ByBrowser indirilmez.
@@ -22,6 +27,9 @@ WinDesk.exe dosyasını kalıcı bir klasöre koyup açın. Taşınabilir sürü
 Windows'a menü, otomatik başlangıç veya kaldırma kaydı eklemez.
 
 KULLANIM
+- Ctrl + Shift tuşlarına birlikte basıp bırakın: paneller öne gelir.
+  Tekrar basıp bırakınca diğer pencerelerin arkasına döner.
+- Grup başlığına tıklayınca o grup hemen açılır; sürükleyerek taşıyabilirsiniz.
 - Saat yanındaki WinDesk simgesi: Ayarlar, Yeni panel, Çıkış.
 - Panel başlığına yaklaşınca grup açılır; raptiye açık kalmasını sağlar.
 - Kısayolları sürükleyip gruba bırakın.
@@ -43,7 +51,9 @@ Windows Ayarları > Uygulamalar bölümünden kaldırabilirsiniz.
 Gruplar ve saklanan kısayollar %LOCALAPPDATA%\WinDesk içindedir.
 Güncelleme ve kaldırma bu kullanıcı verilerini silmez.
 
-EXE dosyalarında Authenticode yayıncı imzası yoktur.
-SHA256SUMS.txt indirdiğiniz dosyaların bütünlüğünü kontrol etmek içindir.
+Yayıncı imzasını EXE > Özellikler > Dijital İmzalar bölümünden kontrol edin.
+İmzasız yerel test paketlerinde Windows güvenlik uyarısı beklenir.
+SHA256SUMS.txt dosya bütünlüğünü kontrol eder; yayıncı imzası yerine geçmez.
+Yeni imzalı sürümlerde de SmartScreen itibarı oluşana kadar uyarı görülebilir.
 Windows 11'in ilk sağ tık menüsü için geliştirici MSIX eklentisi bu
 pakete dahil değildir; kurucu klasik masaüstü menüsünü sağlar.

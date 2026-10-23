@@ -1,18 +1,21 @@
 # WinDesk
 
-Windows 10 ve 11 için C# / WPF ile geliştirilen kişisel masaüstü düzenleyici. Gruplar Explorer'ın masaüstü katmanında yaşar; bağımsız uygulama penceresi olarak öne çıkmaz. Gruplar isteğe bağlı olarak tek bir akordiyon alanında birleştirilebilir.
+Windows 10 ve 11 için C# / WPF ile geliştirilen kişisel masaüstü düzenleyici. Gruplar normalde Explorer'ın masaüstü katmanında yaşar. **Ctrl + Shift** ile tüm pencerelerin önüne getirilebilir ve tekrar aynı kısayolla masaüstüne gönderilebilir. Gruplar isteğe bağlı olarak tek bir akordiyon alanında birleştirilebilir.
 
 ## Çalıştırma
 
-[GitHub Releases](https://github.com/LogicalTR/WinDesk/releases/latest) yayımlanmış sürümleri içerir. Bu kaynak sürümünün kurucusu **WinDesk-Setup-0.7.11-x64.exe** dosyasıdır. Türkçe kurucu yalnız mevcut kullanıcıya kurar; masaüstü/Başlat kısayollarını, klasik sağ tık menüsünü ve isteğe bağlı Windows başlangıcını hazırlar. Hedef sistem Windows 10 22H2 (19045) ve üzeri, x64'tür. Yayın paketi .NET çalışma zamanını içerir. Windows 10 22H2 üzerinde gerçek sanal makine doğrulaması tamamlandı; ortam ve kapsam aşağıdaki test matrisindedir.
+[GitHub Releases](https://github.com/LogicalTR/WinDesk/releases/latest) yayımlanmış sürümleri içerir. Bu kaynak sürümünün kurucusu **WinDesk-Setup-0.7.13-x64.exe** dosyasıdır. Türkçe kurucu yalnız mevcut kullanıcıya kurar; masaüstü/Başlat kısayollarını, klasik sağ tık menüsünü ve isteğe bağlı Windows başlangıcını hazırlar. Hedef sistem Windows 10 22H2 (19045) ve üzeri, x64'tür. Yayın paketi .NET çalışma zamanını içerir. Windows 10 22H2 üzerinde gerçek sanal makine doğrulaması tamamlandı; ortam ve kapsam aşağıdaki test matrisindedir.
 
-Kurulumun son ekranındaki **ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)** seçeneği varsayılan olarak seçilidir. Seçili bırakıp **Bitti**'ye bastığınızda [ByBrowser'ın resmi yayınından](https://github.com/LogicalTR/ByBrowser-Releases/releases/latest) en güncel kararlı x64 kurucu doğrudan indirilir. Dosya boyutu ve SHA-256 değeri doğrulanınca ByBrowser kurulum sihirbazı otomatik açılır. İndirmek istemiyorsanız işareti kaldırın. İlerleme penceresinde iptal, yeniden deneme ve **Dosyayı göster** bulunur. Sessiz WinDesk kurulumunda ByBrowser indirilmez. Dosyalar `%LOCALAPPDATA%\WinDesk\Downloads\ByBrowser` altında tutulur. Bu akış çalışan WinDesk'ten bağımsızdır ve kullanıcı düzenini açmaz.
+Kurulumun son ekranındaki **ByBrowser'ı da indirmek ister misiniz? (İndir ve kurulumu başlat)** seçeneği varsayılan olarak kapalıdır. Kendiniz seçip **Bitti**'ye bastığınızda [ByBrowser'ın resmi yayınından](https://github.com/LogicalTR/ByBrowser-Releases/releases/latest) en güncel kararlı x64 kurucu doğrudan indirilir. Dosya boyutu ve SHA-256 değeri doğrulanınca ByBrowser kurulum sihirbazı otomatik açılır. İndirmek istemiyorsanız seçeneği kapalı bırakın. İlerleme penceresinde iptal, yeniden deneme ve **Dosyayı göster** bulunur. Sessiz WinDesk kurulumunda ByBrowser indirilmez. Dosyalar `%LOCALAPPDATA%\WinDesk\Downloads\ByBrowser` altında tutulur. Bu akış çalışan WinDesk'ten bağımsızdır ve kullanıcı düzenini açmaz.
 
-Kurulum istemiyorsanız **WinDesk-0.7.11-win-x64.exe** dosyasını doğrudan açın veya ZIP paketini çıkarıp `WinDesk.exe` dosyasını çalıştırın. Paneller başlar; ayrı bir yönetim penceresi açılmaz. Genel tercihlere saat yanındaki **Ayarlar** komutuyla ulaşılır. Kurucunun sağ tık menüsü Windows 10'da **masaüstü sağ tık → WinDesk**, Windows 11'de **Daha fazla seçenek göster → WinDesk** altındadır; aşağıdaki modern menü MSIX adımları geliştiriciler içindir.
+ByBrowser sürüm sorgusu GitHub API sınırına (403/429) takılırsa resmi **Latest** bağlantısının yönlendirdiği kararlı sürüm kullanılır. O sürümün `.sha256` dosyası ve kurucu boyutu doğrudan yayın dosyalarından alınır; indirme ve kurulum öncesi doğrulama aynı şekilde uygulanır. Sürüm numarası sabitlenmez ve hesap/token gerekmez.
+
+Kurulum istemiyorsanız **WinDesk-0.7.13-win-x64.exe** dosyasını doğrudan açın veya ZIP paketini çıkarıp `WinDesk.exe` dosyasını çalıştırın. Paneller başlar; ayrı bir yönetim penceresi açılmaz. Genel tercihlere saat yanındaki **Ayarlar** komutuyla ulaşılır. Kurucunun sağ tık menüsü Windows 10'da **masaüstü sağ tık → WinDesk**, Windows 11'de **Daha fazla seçenek göster → WinDesk** altındadır; aşağıdaki modern menü MSIX adımları geliştiriciler içindir.
 
 **Ayarlar → Güncellemeleri denetle** ile yeni kararlı sürümü bulun, ardından **Güncellemeyi indir**'e basın. İndirme arka planda yapılır; SHA-256 ve boyut doğrulaması geçmeden kurucu çalıştırılmaz. Onay verdiğinizde düzen kaydedilir, WinDesk kapanır ve Türkçe kurulum sihirbazı açılır. Taşınabilir kullanımda bu seçenek kullanıcı hesabına kurulum yapar; kurulum sonunda yeni WinDesk'i başlatın. Otomatik/sessiz kurulum yapılmaz. 0.7.6 ve daha eski sürümlerde bu düğme yoktur; yeni kurucuyu bir kez elle indirip WinDesk'i kapatarak kurmak gerekir. Güncelleme ve kaldırma `%LOCALAPPDATA%\WinDesk` içindeki düzeni ve saklanan kısayolları silmez. EXE dosyaları henüz Authenticode yayıncı imzası taşımaz; indirme bütünlüğü için `SHA256SUMS.txt` sunulur.
 
 - Küçük panel başlığına fareyle yaklaşınca uygulamalar açılır.
+- **Ctrl + Shift** tuşlarına birlikte basıp bırakınca tüm paneller diğer pencerelerin önüne gelir; tekrar basıp bırakınca masaüstüne, pencerelerin arkasına döner. Sağ/sol Ctrl ve Shift kullanılabilir. Kısayol başka uygulamada çalışırken de geçerlidir; Ctrl + Shift + T gibi ek tuşlu kısayollar paneli etkilemez. Konumlar ve raptiyeler korunur; uygulama yeniden açıldığında paneller masaüstünde başlar. Aynı komut saat yanındaki WinDesk menüsünde de bulunur.
 - Fare uzaklaşınca sabitlenmemiş panel kapanır. **Ayarlar → Otomatik kapanma** ile 0,20–2,00 saniye seçilir. Değişiklik bekleyen kapanma sayacına da hemen uygulanır.
 - Her grup başlığındaki **raptiye** simgesi o grubu açık tutar. Etkin simge yeşildir; yeniden tıklayınca otomatik kapanmaya döner. Sabitleme tercihi yeniden başlatınca korunur. Birden fazla grup aynı anda sabitlenebilir; başka bir bölümün açılması onları kapatmaz. Sabitleme, diğer uygulamaların üzerine çıkarmak veya konumu kilitlemek anlamına gelmez.
 - Başlıktan sürükleyerek paneli taşıyın.
@@ -41,42 +44,29 @@ Otomatik başlatmayı `.\set-startup.ps1 -Disable` veya **Windows Ayarları → 
 
 ## Geliştirme
 
-### Tek komutla arka planda yayın
+### SignPath ile yayın
 
-Yeni sürüm için `src/WinDesk.App/WinDesk.App.csproj` içindeki `Version` değerini artırın, `RELEASE_NOTES.md` başına `# WinDesk <sürüm>` bölümü ekleyin ve kaynak değişikliklerini Git'e commit edin. Ardından:
+WinDesk kaynakları [MIT lisanslıdır](LICENSE). [Code signing policy](CODE_SIGNING.md), [gizlilik bilgileri](packaging/PRIVACY.txt) ve [üçüncü taraf bildirimleri](THIRD-PARTY-NOTICES.md) depoda bulunur. SignPath Foundation kabulü ve hesap yapılandırması beklenmektedir; bu metin mevcut sürümlerin imzalandığı anlamına gelmez.
 
-```powershell
-.\publish-release.ps1
-```
+Kaynak ağacı GitHub `main` dalında bulunmalıdır. `.github/workflows/ci.yml` PR'larda test ve imzasız paket derlemesi yapar. `.github/workflows/signpath-release.yml` ise yalnız `main` üzerinde manuel başlatılır; GitHub-hosted Windows runner'da kaynaktan derler. Uygulama ve kaldırıcı ilk istekte, bunları içeren Setup ikinci istekte SignPath onayına gider. İmzalar ve dosya bütünlüğü doğrulanmadan yayın paketi üretilmez.
 
-Komut hemen işlem kimliği, `status.json` ve `publish.log` yollarını verir. PowerShell 7, Git, .NET 10 SDK ve LogicalTR hesabına yetkili GitHub CLI gerekir. Bu bilgisayarda CLI `.tools\github-cli\bin\gh.exe` konumunda ve oturumu hazırdır; başka bilgisayarda `gh auth login` bir kez yapılır. Kimlik bilgileri kaynak koduna veya pakete eklenmez.
+Yeni sürümde uygulama `.csproj` dosyasındaki `Version` değerini ve `RELEASE_NOTES.md` dosyasını güncelleyin. İncelenmiş kaynak commit'iyle workflow'u çalıştırın; SignPath'te iki isteği onaylayın. Sonuç, tam kaynak ZIP'i ve SHA-256 listesiyle birlikte inceleme için GitHub artifact'ına yüklenir. Yayın öncesi temiz Windows hesabında test edin. Ayrıntılı [hesap, başvuru ve yayın adımları](tools/RELEASE-SIGNING.md) hazırlanmıştır.
 
-Testler, tek EXE/ZIP/Setup derlemesi, tam kaynak ZIP'i ve SHA-256 listesi hazırlanır. Beş dosya GitHub taslağına yüklenir; sunucudaki boyut ve SHA-256 değerleri eşleşince sürüm herkese açılıp **Latest** yapılır. Dağıtım deposunun README indirme bağlantıları da güncellenir. Kaynak kodu mevcut dağıtım düzenine uygun olarak ekli kaynak ZIP'inde kalır; yerel kaynak dalı GitHub `main` dalına itilmez.
-
-Komut masaüstünü açmaz, çalışan WinDesk'i kapatmaz ve kurucuyu bu bilgisayarda çalıştırmaz. Çekirdek/güncelleme testleri, yayın doğrulama testleri ve pencere açmadan güncelleme arayüzü testleri çalışır. Explorer/kurulum gibi masaüstünü etkileyen tam testler ayrı test hesabı veya VM'de yapılmalıdır.
-
-```powershell
-.\publish-release.ps1 -ValidateOnly   # Derle ve test et; GitHub'a yazma
-.\publish-release.ps1 -Foreground     # Aynı akışı mevcut konsolda izle
-Get-Content '<çıktıdaki status.json yolu>'
-Get-Content '<çıktıdaki publish.log yolu>' -Tail 30
-```
-
-Yükleme kesilirse aynı komut aynı commit'in doğrulanmış paketlerini kullanır ve eksik dosyalardan devam eder. Yayımlanmış dosyaları değiştirmez; yeni kod için yeni sürüm gerekir. Taslağın dosyaları farklıysa, Git ağacı kirliyse veya başka yayın çalışıyorsa durur. `artifacts\publish-<sürüm>\manifest.json` tekrar denemelerin kaydıdır; yayını tamamlayana kadar bu klasörü ve `dist\releases\<sürüm>` dosyalarını koruyun. `status.json` içindeki `published` tamamlanmayı, `validated` yalnız yerel doğrulamayı, `failed` ise hata aşamasını gösterir.
+Eski yerel `publish-release.ps1` dağıtım yolu artık yayın yapmaz. İmzasız yerel test için `./build-release.ps1 -Unsigned` kullanılır. GitHub kaynak dalına geçiş tamamlanmadan veya SignPath hesabı onaylanmadan imzalı yayın yapılamaz.
 
 Güncelleme denetimi yalnız kullanıcı düğmeye bastığında GitHub'ın herkese açık API'sini kullanır; hesap/token ve kullanıcı düzeni gönderilmez. İndirmeler `%LOCALAPPDATA%\WinDesk\Updates` altında tutulur. Yarım dosyalar temizlenir; tamamlanan kurucular gerektiğinde yeniden kullanılabilir.
 
-Gerekli araç: [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). WPF, Windows'a özgü yerel arayüz katmanıdır; tarayıcı veya Electron çalıştırılmaz.
+Gerekli araç: `global.json` ile sabitlenen 10.0.402 sürümlü [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). WPF, Windows'a özgü yerel arayüz katmanıdır; tarayıcı veya Electron çalıştırılmaz.
 
 ```powershell
 .\build.ps1 -Test
 .\build.ps1 -Run
-.\build-release.ps1 -Test
+.\build-release.ps1 -Test -Unsigned  # Yerel test; genel dağıtım için CA imzası gerekir
 ```
 
 Bu çalışma alanındaki SDK `.tools\dotnet` altında izole tutulur. `build.ps1` önce onu, yoksa PATH üzerindeki SDK'yı kullanır. Sistem PATH'i değiştirilmez.
 
-`build.ps1` geliştirme için `dist\WinDesk` altına .NET 10 Desktop Runtime gerektiren bir yayın çıkarır. `build-release.ps1` PATH üzerindeki .NET 10 SDK ile çalışma zamanını içeren tek EXE, ZIP, Türkçe Setup ve SHA-256 dosyasını `dist\releases\<sürüm>` altında üretir. Inno Setup 6.7.3 derleyicisi sabit SHA-256 değeriyle doğrulanan NuGet paketinden `.tools` altına çıkarılır; derleyicinin Pyrsys B.V. imzası kontrol edilir. Sistem geneline kurulum yapılmaz. Sürüm ana uygulamanın `.csproj` dosyasından alınır. Yerel geliştirme araçları, test verileri ve `.ua` analiz çıktıları Git deposuna alınmaz.
+`build.ps1` geliştirme için `dist\WinDesk` altına .NET 10 Desktop Runtime gerektiren bir çıktı çıkarır. `build-release.ps1 -Unsigned` ise çalışma zamanını, lisansları ve gizlilik bilgilerini içeren EXE/ZIP/Setup test paketlerini `dist\unsigned\<sürüm>` altında üretir. Yerel CA sertifikasıyla imzalama desteği korunmuştur; SignPath üretim yayınları GitHub workflow'undan alınır. Mevcut yayımlanmış dosyalar geriye dönük imzalanmaz. Inno Setup 6.7.3 paketi SHA-256 ve derleyicinin Pyrsys B.V. imzasıyla doğrulanır; sistem geneline kurulmaz. Sürüm ana uygulamanın `.csproj` dosyasından alınır. Yerel araçlar ve test verileri Git deposuna alınmaz. [İmzalama ve doğrulama adımları](tools/RELEASE-SIGNING.md).
 
 `tools\test-release.ps1` gerçek kurucuyu ayrı bir test klasöründe kurar, yayımlanan EXE'nin açılışını ve üç klasik menü komutunu doğrular, ardından test kurulumunu kaldırır. WinDesk'in kapalı olduğu ve kurucu/klasik menü kaydı bulunmayan bir test hesabı gerektirir. Mevcut kullanıcı düzeninin hash değerini kurulum öncesi ve sonrası karşılaştırır; günlükleri `artifacts` altında tutar.
 

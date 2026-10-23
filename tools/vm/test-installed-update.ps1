@@ -52,7 +52,7 @@ $newSetup = "$Root\dist\releases\$version\WinDesk-Setup-$version-x64.exe"
 $expectedHash = (Get-FileHash "$Root\dist\releases\$version\WinDesk-$version-win-x64.exe").Hash
 try {
     Run-Process $oldSetup ('/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="contextmenu,startup" /DIR="' + $install + '" /GROUP="WinDesk Upgrade QA" /LOG="' + "$case\old-install.log" + '"')
-    Check ((Get-ItemProperty $key).DisplayVersion -eq $oldVersion) 'Real 0.7.6 installer registered in a custom installation directory'
+    Check ((Get-ItemProperty $key).DisplayVersion -eq $oldVersion) "Real $oldVersion installer registered in a custom installation directory"
     New-Item -ItemType Directory -Path "$data\Shortcuts" -Force | Out-Null
     'WinDesk QA installed update fixture' | Set-Content -LiteralPath $ownerFile -Encoding ascii
     $shortcut = Join-Path $data 'Shortcuts\Türkçe-日本語.url'
@@ -63,16 +63,16 @@ try {
         @{Id=$groupB;Name='İkinci grup';Color='#73D9C3';X=100;Y=370;IsPinned=$false;StackId=$stack;Items=@()}
     );Stacks=@(@{Id=$stack;Name='Birleşik alan';X=100;Y=90})} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $workspace -Encoding utf8
     $before = (Get-FileHash $workspace).Hash; $shortcutHash = (Get-FileHash $shortcut).Hash
-    Check-Started '0.7.6'
+    Check-Started $oldVersion
     Run-Process $newSetup ('/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="' + "$case\upgrade.log" + '"')
-    Check ((Get-ItemProperty $key).DisplayVersion -eq $version -and (Get-FileHash "$install\WinDesk.exe").Hash -eq $expectedHash) 'Upgrade replaces 0.7.6 with the exact 0.7.7 release EXE and remembers the custom directory'
+    Check ((Get-ItemProperty $key).DisplayVersion -eq $version -and (Get-FileHash "$install\WinDesk.exe").Hash -eq $expectedHash) "Upgrade replaces $oldVersion with the exact $version release EXE and remembers the custom directory"
     Check ((Get-FileHash $workspace).Hash -eq $before -and (Get-FileHash $shortcut).Hash -eq $shortcutHash) 'Upgrade preserves the complete workspace and saved Unicode shortcut byte for byte'
     $startup = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run').WinDesk
     Check ($startup -eq ('"' + "$install\WinDesk.exe" + '"')) 'Upgrade retains the selected Windows startup task'
     foreach ($pair in @(@('01-new','new-group'),@('02-toggle','toggle-panels'),@('03-settings','settings'))) {
         Check ((Get-Item "$menu\shell\$($pair[0])\command").GetValue('') -eq ('"' + "$install\WinDesk.exe" + '" --command ' + $pair[1])) "Upgrade retains desktop menu command $($pair[1])"
     }
-    Check-Started '0.7.7'
+    Check-Started $version
 
     $handoff = Join-Path $case 'handoff'; New-Item -ItemType Directory -Path $handoff -Force | Out-Null
     $request = Join-Path $case 'handoff-request.json'

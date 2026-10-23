@@ -1,0 +1,49 @@
+name: Build and test
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: global.json
+      - name: Core and release policy tests
+        run: |
+          dotnet run --project tests/WinDesk.Core.Tests -c Release
+          if ($LASTEXITCODE) { throw 'Core tests failed.' }
+          ./tests/Test-ReleaseSigning.ps1
+          ./tests/Test-PublishRelease.ps1
+          ./tests/Test-SignPath.ps1
+      - name: UI logic tests
+        run: |
+          dotnet run --project tests/WinDesk.App.Tests -c Release -- --update-test "$env:RUNNER_TEMP/update-test"
+          if ($LASTEXITCODE) { throw 'Update UI tests failed.' }
+          dotnet run --project tests/WinDesk.App.Tests -c Release --no-build -- --close-delay-test
+          if ($LASTEXITCODE) { throw 'Close delay tests failed.' }
+      - name: Unsigned package smoke build
+        run: ./build-release.ps1 -Unsigned
+      - name: Prepare actual Inno signing inputs
+        run: ./tools/signpath-release.ps1 -Stage Prepare
+      - name: Test offline Inno signature embedding with an untrusted in-memory test key
+        run: ./tests/Test-InnoSigningRoundtrip.ps1 -PreparedDirectory artifacts/signpath
+      - name: Archive test evidence (not for distribution)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unsigned-build-evidence
+          path: artifacts/signpath/inno-prepare.log
+          if-no-files-found: ignore
+          retention-days: 7

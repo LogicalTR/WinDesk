@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,6 +95,8 @@ internal sealed class ByBrowserDownloadWindow : Window
         }
         catch (OperationCanceledException)
         { _status.Text = operation.IsCancellationRequested ? "İndirme iptal edildi." : "Bağlantı zaman aşımına uğradı. Yeniden deneyebilirsin."; }
+        catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests)
+        { _status.Text = "İndirme sunucusu erişimi geçici olarak sınırladı. Bir süre sonra yeniden deneyebilirsin."; }
         catch (Exception ex) when (IsDownloadError(ex))
         { _status.Text = "ByBrowser indirilemedi. Yeniden deneyebilirsin. " + ex.Message; }
         finally

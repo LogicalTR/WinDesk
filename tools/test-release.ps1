@@ -1,10 +1,12 @@
-param([string]$Version)
+param([string]$Version, [string]$ReleaseDirectory, [switch]$RequireSignature, [switch]$InstallerOnly)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not $Version) {
     $Version = ([xml](Get-Content -LiteralPath (Join-Path $root 'src\WinDesk.App\WinDesk.App.csproj') -Raw)).Project.PropertyGroup.Version
 }
-$release = Join-Path $root "dist\releases\$Version"
+$release = if ($ReleaseDirectory) { $ReleaseDirectory } else { Join-Path $root "dist\releases\$Version" }
+. (Join-Path $PSScriptRoot 'release-signing.ps1')
+if ($RequireSignature) { Assert-ReleasePackageSignatures -Directory $release -Version $Version }
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C984BBCE-651F-4B55-ACB5-8531C17B7C38}_is1'
 $menuKey = 'HKCU:\Software\Classes\DesktopBackground\Shell\WinDesk'
 if ((Test-Path $uninstallKey) -or (Test-Path $menuKey) -or (Get-Process WinDesk -ErrorAction SilentlyContinue)) {
@@ -27,15 +29,25 @@ try {
     ) -WindowStyle Hidden -PassThru -Wait
     if ($installer.ExitCode -ne 0) { throw "Installer failed: $($installer.ExitCode)" }
     $installedExe = Join-Path $installation 'WinDesk.exe'
+    if ($RequireSignature) {
+        $signature = Assert-ReleaseSignature -Path $installedExe
+        Assert-ReleaseSignature -Path (Join-Path $installation 'unins000.exe') -ExpectedThumbprint $signature.SignerCertificate.Thumbprint | Out-Null
+    }
     if ((Get-FileHash -LiteralPath $installedExe).Hash -ne (Get-FileHash -LiteralPath (Join-Path $release "WinDesk-$Version-win-x64.exe")).Hash) {
         throw 'The installed executable differs from the release executable.'
     }
     if (-not (Test-Path $uninstallKey)) { throw 'Missing Windows uninstall registration.' }
+    foreach ($notice in 'LICENSE', 'PRIVACY.txt', 'THIRD-PARTY-NOTICES.md', 'licenses\dotnet-LICENSE.txt',
+        'licenses\dotnet-THIRD-PARTY-NOTICES.txt', 'licenses\windowsdesktop-LICENSE.txt',
+        'licenses\windowsdesktop-THIRD-PARTY-NOTICES.txt', 'licenses\innosetup-LICENSE.txt') {
+        if (-not (Test-Path -LiteralPath (Join-Path $installation $notice))) { throw "Missing installed notice: $notice" }
+    }
     foreach ($pair in @(@('01-new', 'new-group'), @('02-toggle', 'toggle-panels'), @('03-settings', 'settings'))) {
         $command = (Get-Item -LiteralPath "$menuKey\shell\$($pair[0])\command").GetValue('')
         if ($command -ne ('"' + $installedExe + '" --command ' + $pair[1])) { throw 'Incorrect desktop menu command.' }
     }
     Write-Output 'PASS Installer payload, uninstall registration and all three desktop menu commands'
+    if (-not $InstallerOnly) {
     $application = Start-Process -FilePath $installedExe -ArgumentList @('--quiet', '--data-dir', ('"' + $data + '"'), '--diagnostics', ('"' + $diagnostics + '"')) -WindowStyle Hidden -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     while (-not (Test-Path -LiteralPath $diagnostics) -and (Get-Date) -lt $deadline -and -not $application.HasExited) { Start-Sleep -Milliseconds 250 }
@@ -45,6 +57,7 @@ try {
         throw "The packaged application did not render its isolated desktop panels. See $diagnostics"
     }
     Write-Output 'PASS Self-contained packaged EXE starts and renders desktop panels with isolated data'
+    } else { Write-Output 'Desktop startup was not tested (InstallerOnly); use the Windows VM suite for Explorer rendering.' }
 } finally {
     if ($application -and -not $application.HasExited) { Stop-Process -Id $application.Id; $application.WaitForExit() }
     $uninstallerPath = Join-Path $installation 'unins000.exe'

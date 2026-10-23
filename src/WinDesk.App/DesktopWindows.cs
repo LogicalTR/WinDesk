@@ -12,8 +12,8 @@ using System.Windows.Threading;
 namespace WinDesk.App;
 
 /// <summary>
-/// Owns the connection to Explorer's desktop. Panels are child HWNDs, never
-/// top-level windows. If Explorer is absent, no panel HWND is created.
+/// Owns the connection to Explorer's desktop and the temporary foreground mode.
+/// If Explorer is absent, no panel HWND is created.
 /// </summary>
 internal sealed class DesktopWindows : IDisposable
 {
@@ -23,6 +23,7 @@ internal sealed class DesktopWindows : IDisposable
     private readonly DispatcherTimer _watchdog = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool _disposed;
     public bool IsConnected { get; private set; }
+    internal bool PanelsOnTop { get; set; }
     public string Status { get; private set; } = "Masaüstüne bağlanılıyor…";
 
     public DesktopWindows(Func<IEnumerable<DesktopPanel>> panels, Action statusChanged, Func<IntPtr>? findDesktop = null)
@@ -41,16 +42,16 @@ internal sealed class DesktopWindows : IDisposable
         foreach (var panel in _panels())
         {
             if (!connected) { panel.DisconnectFromDesktop(); continue; }
-            try { panel.ConnectToDesktop(desktop); }
+            try { panel.ConnectToDesktop(desktop, PanelsOnTop); }
             catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
             {
-                // No floating-window fallback: a connection error must never
-                // place panel content over other applications.
+                // A connection failure must not leave an orphaned panel.
                 panel.DisconnectFromDesktop(); connected = false;
                 System.Diagnostics.Trace.WriteLine($"WinDesk desktop connection: {ex}");
             }
         }
-        string status = connected ? "Paneller yalnızca masaüstünde görünür." : "Masaüstü bekleniyor; paneller geçici olarak gizli.";
+        string status = connected ? (PanelsOnTop ? "Paneller tüm pencerelerin önünde. Ctrl + Shift ile masaüstüne gönder." :
+            "Paneller masaüstünde. Ctrl + Shift ile öne getir.") : "Masaüstü bekleniyor; paneller geçici olarak gizli.";
         if (IsConnected == connected && Status == status) return;
         IsConnected = connected; Status = status; _statusChanged();
     }

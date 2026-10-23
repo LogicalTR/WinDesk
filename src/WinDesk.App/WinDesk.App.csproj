@@ -11,7 +11,23 @@
     <ApplicationIcon>Assets\WinDesk.ico</ApplicationIcon>
     <AssemblyName>WinDesk</AssemblyName>
     <RootNamespace>WinDesk.App</RootNamespace>
-    <Version>0.7.11</Version>
+    <Company>LogicalTR</Company>
+    <Product>WinDesk</Product>
+    <Description>Windows desktop organizer</Description>
+    <Version>0.7.13</Version>
+    <RuntimeFrameworkVersion>10.0.13</RuntimeFrameworkVersion>
+    <!-- SignPath enforces the same four-part product version on every PE. -->
+    <InformationalVersion>$(Version).0</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../WinDesk.Core/WinDesk.Core.csproj" /></ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../../LICENSE" LogicalName="WinDesk.Licenses.MIT.txt" />
+    <EmbeddedResource Include="../../THIRD-PARTY-NOTICES.md" LogicalName="WinDesk.Licenses.NOTICES.md" />
+    <EmbeddedResource Include="../../packaging/PRIVACY.txt" LogicalName="WinDesk.Licenses.PRIVACY.txt" />
+    <EmbeddedResource Include="$(ReleaseNoticesDirectory)\*.txt" Condition="'$(ReleaseNoticesDirectory)' != ''">
+      <LogicalName>WinDesk.Licenses.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

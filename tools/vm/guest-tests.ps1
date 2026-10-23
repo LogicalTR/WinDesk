@@ -57,9 +57,13 @@ Run-Case 'core' { Run-Executable "$Root\tests\core\WinDesk.Core.Tests.exe" @() }
 Run-Case 'desktop' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--quiet', '--data-dir', "$Root\artifacts\desktop") }
 Run-Case 'shortcut-import' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--import-test') }
 Run-Case 'recovery' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--recovery-test') }
+Run-Case 'desktop-context' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--desktop-launch-test', "$Root\artifacts\desktop-context") }
 Run-Case 'display' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--display-test', '--quiet', '--data-dir', "$Root\artifacts\display") }
 Run-Case 'update-ui' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--update-test', "$Root\artifacts\update-ui") }
 Run-Case 'installed-update' { & "$Root\tools\vm\test-installed-update.ps1" -Root $Root -Report $Report }
+Run-Case 'windows-security' {
+    & "$Root\tools\test-windows-security.ps1" -ReleaseDirectory "$Root\dist\releases\$version" -ReportDirectory "$Report\security" -ScanDefender
+}
 Run-Case 'modern-menu-guard' {
     $rejected = $false
     try { & "$Root\install-menu.ps1" } catch {

@@ -1,10 +1,36 @@
 using System;
 using System.IO;
+using System.Diagnostics;
+using System.Threading;
+using System.Text.Json;
 using WinDesk.App;
 using WinDesk.Core;
 
 internal static class RecoveryTests
 {
+    internal static void DesktopContext(Action<bool, string> check, string directory)
+    {
+        const string requested = @"C:\Users\test\AppData\Local\WinDesk\workspace.json";
+        check(DesktopLaunch.IsRedirectedWorkspace(requested,
+            @"C:\Users\test\AppData\Local\Packages\Example_123\LocalCache\Local\WinDesk\workspace.json"),
+            "A redirected workspace is detected independently of package identity");
+        check(!DesktopLaunch.IsRedirectedWorkspace(requested, requested.ToUpperInvariant()) &&
+            !DesktopLaunch.IsRedirectedWorkspace(requested, @"D:\UserData\WinDesk\workspace.json"),
+            "Ordinary workspace paths do not trigger a relaunch");
+        Directory.CreateDirectory(directory);
+        string report = Path.Combine(directory, "desktop-context-" + Guid.NewGuid().ToString("N") + ".json");
+        string executable = Path.Combine(AppContext.BaseDirectory, "WinDesk.App.Tests.exe");
+        DesktopLaunch.StartOnDesktop(executable, $"\"{executable}\" --desktop-context-probe \"{report}\"");
+        var watch = Stopwatch.StartNew();
+        while (!File.Exists(report) && watch.ElapsedMilliseconds < 15000) Thread.Sleep(50);
+        check(File.Exists(report), "Explorer-context child starts without an interactive console");
+        using var data = JsonDocument.Parse(File.ReadAllText(report));
+        string wanted = data.RootElement.GetProperty("Requested").GetString()!;
+        string actual = data.RootElement.GetProperty("Actual").GetString()!;
+        check(string.Equals(wanted, actual, StringComparison.OrdinalIgnoreCase),
+            "The launched process reads the real user workspace instead of the launcher's package cache");
+    }
+
     internal static void Run(Action<bool, string> check)
     {
         string directory = Path.Combine(Path.GetTempPath(), "WinDeskRecovery-" + Guid.NewGuid().ToString("N"));

@@ -46,7 +46,7 @@ public partial class App
             {
                 Width = 238, Height = 62, Child = text, Background = ManagerWindow.Brush("#1A3030"),
                 BorderBrush = ManagerWindow.Brush("#73D9C3"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10)
-            }, "WinDesk · Kısayolu taşı");
+            }, "WinDesk · Kısayolu taşı", source.IsTopmost);
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
         { System.Diagnostics.Trace.WriteLine($"WinDesk shortcut preview: {ex}"); }
@@ -54,7 +54,7 @@ public partial class App
     }
 
     private bool IsDesktopPoint(ShortcutDrag drag, DesktopNative.Point point) => drag.Source.IsDropAvailable &&
-        DesktopNative.GetAncestor(WindowAtPoint(point), 2) == drag.Source.DesktopParent;
+        IsPanelSurfacePoint(drag.Source, point);
 
     internal PanelSection? FindShortcutTarget(DesktopNative.Point point)
     {

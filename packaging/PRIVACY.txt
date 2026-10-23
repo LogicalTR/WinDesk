@@ -1,0 +1,26 @@
+WinDesk — Gizlilik ve kurulum bilgileri
+
+WinDesk telemetri, reklam ölçümü veya otomatik hata raporu göndermez. Masaüstü
+düzeni, kısayol kopyaları, ayarlar ve yerel tanılama bilgileri bilgisayarınızda
+tutulur; bu dosyalar WinDesk tarafından bir sunucuya yüklenmez.
+
+Ayarlar'dan güncelleme denetimi veya indirme istediğinizde GitHub'a bağlantı
+kurulur. Kurulumun son ekranındaki ByBrowser seçeneği başlangıçta kapalıdır.
+Bu seçeneği kendiniz açarsanız ayrı ByBrowser kurucusu GitHub'dan indirilir,
+boyut ve SHA-256 doğrulamasından sonra kurulum sihirbazı açılır. ByBrowser,
+WinDesk paketine dahil değildir; kurulumu kendi koşullarına tabidir. Sessiz
+WinDesk kurulumunda bu indirme yapılmaz.
+
+GitHub ve indirme altyapısı IP adresinizi ve istek/istemci bilgilerini görür:
+https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
+ByBrowser yayın sayfası: https://github.com/LogicalTR/ByBrowser-Releases
+Bir kısayolu açtığınızda hedef uygulama veya web sitesi kendi gizlilik
+koşullarıyla çalışır. WinDesk bu hedeflerin içeriğini izlemez.
+
+Kurulum yalnız geçerli kullanıcı hesabına yapılır. Kurulum görevleri
+ekranından masaüstü kısayolunu, klasik sağ tık menüsünü ve oturum açılışında
+başlatmayı seçebilirsiniz. Otomatik başlangıç varsayılan olarak kapalıdır.
+Windows Ayarları > Uygulamalar'dan kaldırabilirsiniz. Kaldırma uygulama
+dosyalarını ve kendi kayıtlarını temizler; %LOCALAPPDATA%\WinDesk içindeki
+kişisel düzen, saklanan kısayollar ve indirilen dosyalar korunur. Bunları
+silmek isterseniz uygulama kapalıyken bu klasörü kendiniz kaldırabilirsiniz.

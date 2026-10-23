@@ -15,6 +15,26 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "--desktop-context-probe") {
+            string workspace = Path.Combine(UserDataLocation.DirectoryPath, "workspace.json");
+            File.WriteAllText(args[1] + ".tmp", System.Text.Json.JsonSerializer.Serialize(new {
+                Requested = workspace, Actual = File.Exists(workspace) ? DesktopLaunch.ResolveFilePath(workspace) : workspace
+            }));
+            File.Move(args[1] + ".tmp", args[1]);
+            return 0;
+        }
+        if (args.Length == 2 && args[0] == "--desktop-launch-test") {
+            try { RecoveryTests.DesktopContext(Check, Path.GetFullPath(args[1])); Console.WriteLine($"{_assertions} desktop context assertions passed."); return 0; }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        }
+        if (args.Contains("--panel-hotkey-test")) {
+            try { PanelLayerTests.Chords(Check); Console.WriteLine($"{_assertions} panel hotkey assertions passed."); return 0; }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        }
+        if (args.Contains("--shortcut-click-test")) {
+            try { ShortcutClickTests.Run(Check); Console.WriteLine($"{_assertions} shortcut click assertions passed."); return 0; }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        }
         if (args.Contains("--close-delay-test")) {
             try { CloseDelayTests.Run(Check); Console.WriteLine($"{_assertions} close delay assertions passed."); return 0; }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
@@ -57,6 +77,11 @@ internal static class Program
         {
             try
             {
+                if (args.Contains("--panel-layer-test")) {
+                    await PanelLayerTests.Run(app, Check);
+                    await HeaderInteractionTests.Run(app, Check);
+                    Console.WriteLine($"{_assertions} panel layer assertions passed."); return;
+                }
                 if (args.Contains("--explorer-restart-test")) {
                     await ExplorerRestartTests.Run(app, Check);
                     Console.WriteLine($"{_assertions} real Explorer restart assertions passed."); return;
@@ -74,7 +99,7 @@ internal static class Program
                 Check(DesktopNative.GetParent(panel.Handle) == panel.DesktopParent, "Native parent is the desktop, not an owner relationship");
                 long style = DesktopNative.GetWindowLongPtr(panel.Handle, -16).ToInt64();
                 Check((style & 0x40000000) != 0 && (style & 0x80000000L) == 0, "Panel has WS_CHILD and no top-level WS_POPUP style");
-                Check((DesktopNative.GetWindowLongPtr(panel.Handle, -20).ToInt64() & 0x08) == 0, "Panel never has the always-on-top style");
+                Check((DesktopNative.GetWindowLongPtr(panel.Handle, -20).ToInt64() & 0x08) == 0, "Panel starts without the always-on-top style");
                 Check(DesktopNative.GetLayeredWindowAttributes(panel.Handle, out _, out byte alpha, out uint layeredFlags) && alpha == 255 && (layeredFlags & 2) != 0,
                     "Desktop container has an initialized opaque composition surface");
                 var presentation = (HwndSource)PresentationSource.FromVisual(panel)!;
@@ -273,6 +298,7 @@ internal static class Program
                         "Pin-button and section-drop actions save their final state to disk");
                 }
                 finally { app.WindowAtPoint = DesktopNative.WindowFromPoint; }
+                await ShortcutClickTests.TestAsync(Check);
                 await ShortcutTests.Run(app, previewDirectory, Check);
                 await SectionOrderTests.Run(app, previewDirectory, Check);
                 await CommandTests.Run(app, Check);
@@ -280,6 +306,8 @@ internal static class Program
                 await ShortcutImportTests.Run(Check);
                 await DisplayBehaviorTests.Run(app, Check);
                 await CloseDelayTests.Run(app, Check);
+                await PanelLayerTests.Run(app, Check);
+                await HeaderInteractionTests.Run(app, Check);
                 Console.WriteLine($"{_assertions} WPF and desktop integration assertions passed.");
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); exitCode = 1; }

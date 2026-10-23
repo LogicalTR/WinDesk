@@ -102,7 +102,7 @@ public partial class PanelSection : UserControl
     private void Grip_Completed(object sender, DragCompletedEventArgs e) { _owner.EndDrag(PointerScreen(AreaGrip), commit: !e.Canceled); e.Handled = true; }
     private void Header_MouseMove(object sender, MouseEventArgs e) { if (Header.IsMouseCaptured) _owner.ContinueDrag(PointerScreen(Header)); }
     private void Header_MouseUp(object sender, MouseButtonEventArgs e)
-    { if (e.ChangedButton == MouseButton.Left && Header.IsMouseCaptured) { _owner.EndDrag(PointerScreen(Header)); Header.ReleaseMouseCapture(); e.Handled = true; } }
+    { if (e.ChangedButton == MouseButton.Left && Header.IsMouseCaptured) { _owner.EndHeaderPress(Model.Id, PointerScreen(Header)); Header.ReleaseMouseCapture(); e.Handled = true; } }
     private void Header_LostCapture(object sender, MouseEventArgs e)
     { if (ReferenceEquals(e.OriginalSource, Header)) _owner.EndDrag(commit: false); }
 

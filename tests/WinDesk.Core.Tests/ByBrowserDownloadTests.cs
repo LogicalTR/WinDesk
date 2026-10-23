@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -57,11 +58,112 @@ internal static class ByBrowserDownloadTests
         bool tampered = false;
         try { using var verified = ByBrowserDownloads.OpenVerifiedInstaller(release, file); } catch (InvalidDataException) { tampered = true; }
         check(tampered, "ByBrowser installer modified after download is rejected before launch");
+        await RateLimitTests(check, directory, bytes, digest);
+    }
+
+    private static async Task RateLimitTests(Action<bool, string> check, string directory, byte[] bytes, string digest)
+    {
+        const string name = "ByBrowser-Setup-3.0.1-x64.exe";
+        const string releaseUrl = ByBrowserDownloads.RepositoryUrl + "/releases/tag/v3.0.1";
+        const string downloadUrl = ByBrowserDownloads.RepositoryUrl + "/releases/download/v3.0.1/" + name;
+        string checksum = digest + "  " + name + "\n";
+        var requests = new List<string>();
+        HttpClient Client(HttpStatusCode status, string redirectedRelease = releaseUrl, string? checksumText = null, long? size = 4) =>
+            new(new Handler(request => {
+                string url = request.RequestUri!.AbsoluteUri;
+                requests.Add(request.Method + " " + url);
+                if (request.Headers.Authorization is not null || request.Headers.UserAgent.Count == 0)
+                    throw new Exception("Public downloads must identify the client without account credentials.");
+                if (url == ByBrowserDownloads.LatestApi) return new(status);
+                if (url == ByBrowserDownloads.LatestRelease && request.Method == HttpMethod.Head)
+                    return new(HttpStatusCode.OK) { RequestMessage = new HttpRequestMessage(HttpMethod.Head, redirectedRelease) };
+                if (url == downloadUrl + ".sha256" && request.Method == HttpMethod.Get)
+                    return new(HttpStatusCode.OK) { Content = new StringContent(checksumText ?? checksum) };
+                if (url == downloadUrl && request.Method == HttpMethod.Head) {
+                    // A real HEAD has headers but no installer bytes, including unknown-length responses.
+                    var content = new StreamContent(Stream.Null); content.Headers.ContentLength = size;
+                    return new(HttpStatusCode.OK) { Content = content };
+                }
+                if (url == downloadUrl && request.Method == HttpMethod.Get)
+                    return new(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
+                throw new Exception("Unexpected fallback request: " + request.Method + " " + url);
+            }));
+
+        foreach (var status in new[] { HttpStatusCode.Forbidden, HttpStatusCode.TooManyRequests }) {
+            requests.Clear();
+            using var client = Client(status);
+            var downloads = new ByBrowserDownloads(client);
+            var release = (await downloads.CheckAsync())!;
+            string file = await downloads.DownloadAsync(release, Path.Combine(directory, "fallback-" + (int)status));
+            using var verified = ByBrowserDownloads.OpenVerifiedInstaller(release, file);
+            check(release.Version == new Version(3, 0, 1) && release.Sha256 == digest && verified.Length == 4
+                && File.ReadAllBytes(file).SequenceEqual(bytes), $"HTTP {(int)status} falls back to the current public release and downloads verified installer bytes");
+            check(requests.SequenceEqual(new[] {
+                "GET " + ByBrowserDownloads.LatestApi, "HEAD " + ByBrowserDownloads.LatestRelease,
+                "GET " + downloadUrl + ".sha256", "HEAD " + downloadUrl, "GET " + downloadUrl
+            }), "Fallback makes no API retry and pins checksum, size and installer to the resolved release");
+        }
+
+        foreach (string invalidRelease in new[] {
+            releaseUrl + "-beta", releaseUrl + "?tag=v3.0.1", releaseUrl.Replace("https:", "http:"),
+            releaseUrl.Replace("ByBrowser-Releases", "WinDesk"), ByBrowserDownloads.LatestRelease,
+            releaseUrl.Replace("v3.0.1", "v03.0.1"), releaseUrl.Replace("v3.0.1", "v999999999999.0.1")
+        }) {
+            requests.Clear(); using var client = Client(HttpStatusCode.Forbidden, redirectedRelease: invalidRelease);
+            bool rejected = false;
+            try { await new ByBrowserDownloads(client).CheckAsync(); } catch (InvalidDataException) { rejected = true; }
+            check(rejected && requests.Count == 2, "Fallback rejects an untrusted, unresolved or non-stable release before requesting assets");
+        }
+        foreach (string invalidChecksum in new[] {
+            "invalid  " + name, digest + "  Other-Setup-3.0.1-x64.exe", digest + "  ../" + name,
+            checksum + checksum, digest, digest + "  " + name + ".exe"
+        }) {
+            requests.Clear(); using var client = Client(HttpStatusCode.Forbidden, checksumText: invalidChecksum);
+            bool rejected = false;
+            try { await new ByBrowserDownloads(client).CheckAsync(); } catch (InvalidDataException) { rejected = true; }
+            check(rejected && requests.Count == 3, "Fallback requires a single SHA-256 entry for the exact versioned installer");
+        }
+        foreach (long? invalidSize in new long?[] { null, 0, 513L * 1024 * 1024 }) {
+            using var client = Client(HttpStatusCode.Forbidden, size: invalidSize);
+            bool rejected = false;
+            try { await new ByBrowserDownloads(client).CheckAsync(); } catch (InvalidDataException) { rejected = true; }
+            check(rejected, "Fallback rejects missing, empty or oversized installer lengths");
+        }
+        using (var client = Client(HttpStatusCode.Forbidden, checksumText: new string('a', 4097))) {
+            bool rejected = false;
+            try { await new ByBrowserDownloads(client).CheckAsync(); } catch (HttpRequestException) { rejected = true; }
+            check(rejected, "Fallback bounds checksum response allocation");
+        }
+        requests.Clear();
+        using (var client = Client(HttpStatusCode.NotFound)) {
+            bool rejected = false;
+            try { await new ByBrowserDownloads(client).CheckAsync(); }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { rejected = true; }
+            check(rejected && requests.Count == 1, "Unrelated API failures do not trigger the rate-limit fallback");
+        }
+        using (var client = new HttpClient(new WaitingFallbackHandler()))
+        using (var cancellation = new CancellationTokenSource()) {
+            Task pending = new ByBrowserDownloads(client).CheckAsync(cancellation.Token);
+            cancellation.Cancel(); bool cancelled = false;
+            try { await pending; } catch (OperationCanceledException) { cancelled = true; }
+            check(cancelled, "Cancellation interrupts the fallback release lookup");
+        }
+    }
+
+    private sealed class WaitingFallbackHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            if (request.RequestUri!.AbsoluteUri == ByBrowserDownloads.LatestApi)
+                return new(HttpStatusCode.Forbidden) { RequestMessage = request };
+            await Task.Delay(Timeout.Infinite, token);
+            throw new InvalidOperationException();
+        }
     }
 
     private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
-        { token.ThrowIfCancellationRequested(); var response = respond(request); response.RequestMessage = request; return Task.FromResult(response); }
+        { token.ThrowIfCancellationRequested(); var response = respond(request); response.RequestMessage ??= request; return Task.FromResult(response); }
     }
 }

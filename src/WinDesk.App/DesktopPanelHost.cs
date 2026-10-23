@@ -7,22 +7,23 @@ using System.Windows.Media;
 
 namespace WinDesk.App;
 
-/// <summary>Creates a child HWND directly. It can never briefly appear as a floating window.</summary>
+/// <summary>Hosts a panel on the desktop, or above applications when explicitly requested.</summary>
 internal sealed class DesktopPanelHost : IDisposable
 {
     private HwndSource? _source;
     private DesktopContainer? _container;
     private int _regionWidth, _regionHeight;
     internal IntPtr Parent { get; }
+    internal bool IsTopmost { get; }
     internal IntPtr Handle => _container?.Handle ?? IntPtr.Zero;
-    internal bool IsAlive => Handle != IntPtr.Zero && DesktopNative.IsWindow(Handle) && DesktopNative.GetParent(Handle) == Parent &&
+    internal bool IsAlive => Handle != IntPtr.Zero && DesktopNative.IsWindow(Handle) && DesktopNative.GetParent(Handle) == (IsTopmost ? IntPtr.Zero : Parent) &&
         _source is { IsDisposed: false } && DesktopNative.IsWindow(_source.Handle) && DesktopNative.GetParent(_source.Handle) == Handle;
     internal double Scale => DesktopNative.GetDpiForWindow(Parent) is var dpi && dpi != 0 ? dpi / 96.0 : 1;
 
-    internal DesktopPanelHost(IntPtr parent, FrameworkElement content, string name)
+    internal DesktopPanelHost(IntPtr parent, FrameworkElement content, string name, bool topmost = false)
     {
         if (!DesktopNative.IsDesktopHost(parent)) throw new InvalidOperationException("Masaüstü bağlantısı bulunamadı.");
-        Parent = parent;
+        Parent = parent; IsTopmost = topmost;
         // Cross-process parent/child windows must have compatible DPI contexts.
         // Switch only while constructing the HWND, then restore the UI thread.
         IntPtr previous = DesktopNative.SetThreadDpiAwarenessContext(DesktopNative.GetWindowDpiAwarenessContext(parent));
@@ -36,9 +37,9 @@ internal sealed class DesktopPanelHost : IDisposable
             _container = new DesktopContainer();
             _container.CreateHandle(new System.Windows.Forms.CreateParams
             {
-                Caption = name, Parent = parent,
-                Style = DesktopNative.ChildStyle | DesktopNative.ClipSiblingsStyle | 0x02000000,
-                ExStyle = DesktopNative.NoActivateStyle | 0x00080000,
+                Caption = name, Parent = topmost ? IntPtr.Zero : parent,
+                Style = (topmost ? unchecked((int)0x80000000) : DesktopNative.ChildStyle) | DesktopNative.ClipSiblingsStyle | 0x02000000,
+                ExStyle = DesktopNative.NoActivateStyle | 0x00080000 | (topmost ? 0x00000088 : 0), // TOOLWINDOW | TOPMOST
                 Width = (int)Math.Ceiling(content.Width * Scale),
                 Height = (int)Math.Ceiling(content.Height * Scale)
             });
@@ -57,9 +58,8 @@ internal sealed class DesktopPanelHost : IDisposable
             _source.CompositionTarget.RenderMode = RenderMode.SoftwareOnly;
             _source.CompositionTarget.BackgroundColor = Color.FromRgb(26, 34, 48);
             _source.RootVisual = content;
-            // HWND_TOP here only changes sibling order inside Explorer.
-            // The desktop root itself is never activated, raised, or modified.
-            if (!DesktopNative.SetWindowPos(Handle, IntPtr.Zero, 0, 0, 0, 0, 0x03 | DesktopNative.NoActivate))
+            // Only the panel is raised; Explorer is never activated or reordered.
+            if (!DesktopNative.SetWindowPos(Handle, topmost ? new IntPtr(-1) : IntPtr.Zero, 0, 0, 0, 0, 0x03 | DesktopNative.NoActivate))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         }
         catch { Dispose(); throw; }
@@ -77,7 +77,7 @@ internal sealed class DesktopPanelHost : IDisposable
     {
         if (!IsAlive) return;
         var point = new DesktopNative.Point((int)Math.Round(screenX * Scale), (int)Math.Round(screenY * Scale));
-        if (!DesktopNative.ScreenToClient(Parent, ref point)) return;
+        if (!IsTopmost && !DesktopNative.ScreenToClient(Parent, ref point)) return;
         DesktopNative.SetWindowPos(Handle, IntPtr.Zero, point.X, point.Y,
             Math.Max(1, (int)Math.Ceiling(width * Scale)), Math.Max(1, (int)Math.Ceiling(height * Scale)),
             DesktopNative.NoActivate | DesktopNative.NoZOrder);

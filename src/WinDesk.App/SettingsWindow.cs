@@ -39,6 +39,8 @@ internal sealed class SettingsWindow : Window
         body.Children.Add(slider);
         body.Children.Add(new TextBlock { Text = "Fare uzaklaşınca veya başka grup başlığına geçince bu süre beklenir. Raptiyeyle sabitlediklerin her zaman açık kalır.",
             TextWrapping = TextWrapping.Wrap, Foreground = ManagerWindow.Brush("#A4AFC1"), LineHeight = 19 });
+        body.Children.Add(new TextBlock { Text = "Ctrl + Shift tuşlarına birlikte basıp bırak: paneller tüm pencerelerin önüne gelir. Tekrar basıp bırak: masaüstüne, diğer pencerelerin arkasına döner.",
+            TextWrapping = TextWrapping.Wrap, Foreground = ManagerWindow.Brush("#A4AFC1"), LineHeight = 19, Margin = new Thickness(0, 16, 0, 0) });
         _visibility = new Button { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 24, 0, 18) };
         _visibility.Click += (_, _) => Controller.TogglePanels(); body.Children.Add(_visibility);
         _status = new TextBlock { FontSize = 11, Foreground = ManagerWindow.Brush("#A4AFC1"), TextWrapping = TextWrapping.Wrap }; body.Children.Add(_status);

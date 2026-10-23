@@ -1,9 +1,11 @@
 #requires -Version 7.0
 param([Parameter(Mandatory)][string]$RunDirectory, [switch]$ValidateOnly)
 $ErrorActionPreference = 'Stop'
+if (-not $ValidateOnly) { throw 'Local publication is retired. Use the GitHub-hosted SignPath release workflow; see tools/RELEASE-SIGNING.md.' }
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $root
 . (Join-Path $PSScriptRoot 'release-common.ps1')
+. (Join-Path $PSScriptRoot 'release-signing.ps1')
 $repo = 'LogicalTR/WinDesk'
 $gh = Join-Path $root '.tools\github-cli\bin\gh.exe'
 New-Item -ItemType Directory -Path $RunDirectory -Force | Out-Null
@@ -69,6 +71,7 @@ try {
         & dotnet run --project tests\WinDesk.Core.Tests -c Release | Out-Host
         if ($LASTEXITCODE -ne 0) { throw 'Core/update tests failed.' }
         & (Join-Path $root 'tests\Test-PublishRelease.ps1') | Out-Host
+        & (Join-Path $root 'tests\Test-ReleaseSigning.ps1') | Out-Host
         & dotnet build WinDesk.slnx -c Release --nologo | Out-Host
         if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
         & dotnet run --project tests\WinDesk.App.Tests -c Release --no-build -- --update-test (Join-Path $RunDirectory 'update-ui') | Out-Host
@@ -93,6 +96,9 @@ try {
     }
     # Catch concurrent source edits during the build before any upload.
     if ((& git status --porcelain --untracked-files=all) -or (& git rev-parse HEAD) -ne $commit) { throw 'Source changed during the build; publication stopped.' }
+    # Also validate resumed/cached releases before any GitHub write.
+    $stage = 'signatures'; Set-Status running 'Verifying timestamped publisher signatures and portable ZIP payload.'
+    Assert-ReleasePackageSignatures -Directory $output -Version $version
     if ($ValidateOnly) { $stage = 'complete'; Set-Status validated "Build and local checks passed. No GitHub writes. Artifacts: $output"; return }
 
     $stage = 'upload'; Set-Status running 'Preparing a draft release and uploading missing assets.'

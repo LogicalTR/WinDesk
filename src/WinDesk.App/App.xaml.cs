@@ -18,6 +18,7 @@ public partial class App : Application
     private SingleInstanceCommands? _commands;
     private Forms.NotifyIcon? _tray;
     private DesktopWindows? _desktop;
+    private PanelHotkey? _panelHotkey;
     private SettingsWindow? _manager;
     private DesktopPanel? _dragSource;
     private WorkspaceStore _store = null!;
@@ -26,6 +27,7 @@ public partial class App : Application
     public Workspace Workspace { get; private set; } = null!;
     public bool IsExiting { get; private set; }
     public bool PanelsHidden { get; private set; }
+    internal bool PanelsOnTop => _desktop?.PanelsOnTop == true;
     public event Action? WorkspaceChanged;
     public event Action? DesktopStatusChanged;
     public string DesktopStatus => _desktop?.Status ?? "Masaüstüne bağlanılıyor…";
@@ -46,8 +48,11 @@ public partial class App : Application
                 "WinDesk", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown(1); return;
         }
-        try { DesktopLaunch.EnsureUnpackaged(); }
-        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) {
+        try {
+            if (DesktopLaunch.RelaunchIfRedirected(e.Args)) { Shutdown(); return; }
+            DesktopLaunch.EnsureUnpackaged();
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException) {
             MessageBox.Show(ex.Message, "WinDesk"); Shutdown(1); return;
         }
         base.OnStartup(e);
@@ -92,11 +97,14 @@ public partial class App : Application
         }
         _desktop = new DesktopWindows(() => _windows.Values, () => DesktopStatusChanged?.Invoke());
         RebuildPanels();
+        try { _panelHotkey = new PanelHotkey(() => Dispatcher.BeginInvoke(TogglePanelLayer)); }
+        catch (System.ComponentModel.Win32Exception ex) { Trace.WriteLine($"WinDesk panel hotkey: {ex}"); }
         _commands = new SingleInstanceCommands(command => Dispatcher.BeginInvoke(() => ExecuteCommand(command)));
         var trayMenu = new Forms.ContextMenuStrip();
         trayMenu.Items.Add("Ayarlar", null, (_, _) => Dispatcher.Invoke(OpenManager));
         trayMenu.Items.Add("Yeni panel", null, (_, _) => Dispatcher.Invoke(CreatePanel));
         trayMenu.Items.Add("Panelleri gizle / göster", null, (_, _) => Dispatcher.Invoke(TogglePanels));
+        trayMenu.Items.Add("Öne getir / arkaya gönder (Ctrl + Shift)", null, (_, _) => Dispatcher.Invoke(TogglePanelLayer));
         trayMenu.Items.Add(new Forms.ToolStripSeparator());
         trayMenu.Items.Add("Çıkış", null, (_, _) => Dispatcher.Invoke(ExitApp));
         _tray = new Forms.NotifyIcon { Text = "WinDesk · Masaüstü panellerin", Icon = System.Drawing.SystemIcons.Application, ContextMenuStrip = trayMenu, Visible = true };
@@ -220,7 +228,7 @@ public partial class App : Application
         if (!source.IsDropAvailable) return null;
         // Mouse capture can continue over other apps. Never merge through a
         // window covering the desktop, even if a panel sits underneath it.
-        if (DesktopNative.GetAncestor(WindowAtPoint(point), 2) != source.DesktopParent) return null;
+        if (!IsPanelSurfacePoint(source, point)) return null;
         DesktopPanel? best = null;
         double bestScore = 0;
         bool overlapAllowed = _dragSource == source && source.TryGetDragBounds(out _);
@@ -235,7 +243,7 @@ public partial class App : Application
             double ratio = width > 0 && height > 0 ? (double)width * height / Math.Max(1,
                 Math.Min((double)(rect.Right - rect.Left) * (rect.Bottom - rect.Top), (double)(moving.Right - moving.Left) * (moving.Bottom - moving.Top))) : 0;
             bool overlapping = overlapAllowed && width >= 96 * scale && height >= 18 * scale && ratio >= 0.25 &&
-                DesktopNative.GetAncestor(WindowAtPoint(new DesktopNative.Point(left + width / 2, top + height / 2)), 2) == source.DesktopParent;
+                IsPanelSurfacePoint(source, new DesktopNative.Point(left + width / 2, top + height / 2));
             double score = underPointer ? 2 + ratio : overlapping ? ratio : 0;
             if (score > bestScore) { best = panel; bestScore = score; }
         }
@@ -245,7 +253,7 @@ public partial class App : Application
     internal void UpdatePanelDrag(DesktopPanel source, DesktopNative.Point point)
     {
         if (_dragSource != source) return;
-        bool onDesktop = source.IsDropAvailable && DesktopNative.GetAncestor(WindowAtPoint(point), 2) == source.DesktopParent;
+        bool onDesktop = source.IsDropAvailable && IsPanelSurfacePoint(source, point);
         if (onDesktop) source.ScrollSectionsForDrop(point);
         int? reorderIndex = onDesktop ? source.SectionInsertionIndex(point) : null;
         var target = FindDropTarget(source, point);
@@ -265,7 +273,7 @@ public partial class App : Application
         if (sectionId.HasValue)
         {
             if (!source.IsDropAvailable ||
-                DesktopNative.GetAncestor(WindowAtPoint(point), 2) != source.DesktopParent) return false;
+                !IsPanelSurfacePoint(source, point)) return false;
             reorderIndex = source.SectionInsertionIndex(point);
             if (reorderIndex.HasValue) target = null;
             else if (!source.IsOutsideOriginalArea(point)) return false;
@@ -329,6 +337,23 @@ public partial class App : Application
             if (PanelsHidden) window.Hide(); else window.Show();
         }
         WorkspaceChanged?.Invoke();
+    }
+
+    internal void TogglePanelLayer()
+    {
+        if (IsExiting || _desktop is null) return;
+        EndShortcutDrag(default, false);
+        CancelPanelDrag();
+        _desktop.PanelsOnTop = !_desktop.PanelsOnTop;
+        if (_desktop.PanelsOnTop && PanelsHidden) TogglePanels();
+        _desktop.Synchronize();
+    }
+
+    private bool IsPanelSurfacePoint(DesktopPanel source, DesktopNative.Point point)
+    {
+        IntPtr root = DesktopNative.GetAncestor(WindowAtPoint(point), 2);
+        return root != IntPtr.Zero && (root == source.DesktopParent ||
+            _windows.Values.Any(panel => panel.IsTopmost && panel.IsDropAvailable && panel.Handle == root));
     }
 
     internal void SetCloseDelay(int milliseconds)
@@ -414,5 +439,5 @@ public partial class App : Application
     }
 
     protected override void OnExit(ExitEventArgs e)
-    { _commands?.Dispose(); _desktop?.Dispose(); _tray?.Dispose(); _mutex?.Dispose(); base.OnExit(e); }
+    { _panelHotkey?.Dispose(); _commands?.Dispose(); _desktop?.Dispose(); _tray?.Dispose(); _mutex?.Dispose(); base.OnExit(e); }
 }

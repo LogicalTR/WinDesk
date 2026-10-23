@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using WinDesk.Core;
 
 namespace WinDesk.App;
@@ -14,6 +15,8 @@ internal sealed class ShortcutButton : Button
     private readonly DesktopPanel _owner;
     private DesktopNative.Point _start;
     private bool _dragging, _suppressClick;
+    private bool _clickPending, _hasLaunched;
+    private long _lastLaunchCompleted;
 
     internal ShortcutButton(PanelModel panel, ShortcutModel shortcut, DesktopPanel owner)
     { _panel = panel; _shortcut = shortcut; _owner = owner; }
@@ -56,7 +59,25 @@ internal sealed class ShortcutButton : Button
         base.OnMouseLeftButtonUp(e);
     }
 
-    protected override void OnClick() { if (!_suppressClick) base.OnClick(); }
+    protected override void OnClick()
+    {
+        if (_suppressClick || _clickPending || (_hasLaunched &&
+            Environment.TickCount64 - _lastLaunchCompleted < System.Windows.Forms.SystemInformation.DoubleClickTime)) return;
+
+        // Shell execution can pump messages while an application starts. Finish
+        // the input event first, and reject repeat clicks even during that pump.
+        _clickPending = true;
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+        {
+            try { base.OnClick(); }
+            finally
+            {
+                _lastLaunchCompleted = Environment.TickCount64;
+                _hasLaunched = true;
+                _clickPending = false;
+            }
+        }));
+    }
 
     protected override void OnLostMouseCapture(MouseEventArgs e)
     {

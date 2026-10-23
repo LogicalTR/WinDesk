@@ -1,5 +1,6 @@
 param([switch]$Foreground, [switch]$ValidateOnly)
 $ErrorActionPreference = 'Stop'
+if (-not $ValidateOnly) { throw 'Production releases now use .github/workflows/signpath-release.yml. See tools/RELEASE-SIGNING.md.' }
 $worker = Join-Path $PSScriptRoot 'tools\publish-release.ps1'
 $run = Join-Path $PSScriptRoot ('artifacts\publishing\' + (Get-Date -Format yyyyMMdd-HHmmss) + '-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $run -Force | Out-Null
