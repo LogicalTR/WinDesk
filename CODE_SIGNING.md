@@ -4,6 +4,11 @@ Status: integration prepared; SignPath Foundation acceptance and production
 configuration are pending. Existing unsigned releases remain unsigned. This
 page does not claim that signing has already been provided.
 
+Release 0.7.13 is a maintainer-approved unsigned exception while production
+signing is pending. Its application and installer have no Authenticode
+publisher signature. This exception does not enable unsigned publication in
+the standard release scripts or change the planned signing requirements below.
+
 The planned service attribution, effective after acceptance, is:
 Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
 

@@ -11,7 +11,7 @@ Ctrl + Shift ile panelleri öne getirme, grup başlıklarının açılması ve d
 
 Doğrulama: Windows 11 üzerinde 118 çekirdek, 252 WPF/masaüstü, 4 başlangıç bağlamı ve 39 imza/yayın kontrolü geçti. Windows 10 22H2 sanal makinesindeki 14 aşama geçti; aynı 118 çekirdek ve 252 masaüstü kontrolünün yanında gerçek kurulum, 0.7.6'dan 0.7.13'e güncelleme, uygulama içi güncelleme devri, kaldırma, kısayolların korunması ve Explorer yeniden başlatması sınandı. Defender paketlerde tehdit bulmadı. SmartScreen itibarı ve üretim imzası bu kontrollerin kapsamında değildir.
 
-SignPath Foundation kabulü ve üretim yapılandırması henüz tamamlanmadı. [İmzalama politikası](https://github.com/LogicalTR/WinDesk/blob/main/CODE_SIGNING.md).
+Bu sürümün EXE ve Setup dosyaları Authenticode ile imzalı değildir. SignPath Foundation kabulü ve üretim yapılandırması henüz tamamlanmadı. [İmzalama politikası](https://github.com/LogicalTR/WinDesk/blob/v0.7.13/CODE_SIGNING.md).
 
 # WinDesk 0.7.12
 
