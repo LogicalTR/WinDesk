@@ -5,12 +5,12 @@ Windows 10 ve 11 için masaüstü grupları, akordiyon panelleri ve sürükle-b�
 
 ## İndir
 
-**Güncel sürüm: 0.7.13** · [Sürüm notları](https://github.com/LogicalTR/WinDesk/releases/tag/v0.7.13)
+**Güncel sürüm: 0.7.14** · [Sürüm notları](https://github.com/LogicalTR/WinDesk/releases/tag/v0.7.14)
 
-- [Türkçe kurulum](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.13/WinDesk-Setup-0.7.13-x64.exe)
-- [Taşınabilir EXE](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.13/WinDesk-0.7.13-win-x64.exe)
-- [Taşınabilir ZIP ve kullanım kılavuzu](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.13/WinDesk-0.7.13-win-x64.zip)
-- [SHA-256 doğrulama listesi](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.13/SHA256SUMS.txt)
+- [Türkçe kurulum](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.14/WinDesk-Setup-0.7.14-x64.exe)
+- [Taşınabilir EXE](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.14/WinDesk-0.7.14-win-x64.exe)
+- [Taşınabilir ZIP ve kullanım kılavuzu](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.14/WinDesk-0.7.14-win-x64.zip)
+- [SHA-256 doğrulama listesi](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.14/SHA256SUMS.txt)
 
 Windows 10 22H2 (19045) ve üzeri, x64 gerekir. .NET çalışma zamanı dahildir. Bu sürümün EXE ve Setup dosyaları Authenticode ile imzalı değildir. SHA-256 listesi dosya bütünlüğünü doğrular; yayıncı imzasının yerine geçmez.
 
@@ -19,6 +19,8 @@ Kurulumun son ekranında **ByBrowser'ı da indirmek ister misiniz? (İndir ve ku
 ## Kullanım ve güncelleme
 
 **Ctrl + Shift** ile tüm panelleri öne getirin; tekrar kullanınca masaüstüne geri gönderin. Grup başlığına tıklamak seçilen grubu hemen açar; başlıkları sürükleyerek sıralama ve ayırma kullanılmaya devam eder.
+
+Panelin görünen kısmına tıklamak o paneli geçici olarak öne getirir. Fare ayrıldıktan 2 saniye sonra başlıkları görünür kalarak masaüstüne döner. Ctrl + Shift ile öne getirilen paneller ise aynı kısayola tekrar basılana kadar önde kalır.
 
 Saat yanındaki WinDesk simgesinden yeni grup ekleyin veya ayarlara ulaşın. Kısayolları gruplara bırakın; başlıkları sürükleyerek birleştirin, sıralayın veya ayırın. Raptiye grubu açık tutar.
 
@@ -36,10 +38,10 @@ Masaüstü menüsü Windows 10'da **Sağ tık → WinDesk**, Windows 11'de **Sa�
 
 ## Kaynak kodu
 
-WinDesk MIT lisanslıdır. Kaynak kodu, testler ve derleme akışı [v0.7.13 etiketinde](https://github.com/LogicalTR/WinDesk/tree/v0.7.13) incelenebilir; [sürümle eşleşen kaynak ZIP'i](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.13/WinDesk-0.7.13-source.zip) de yayın dosyalarındadır. Eski, yalnız dağıtım README'si içeren etiketlerin otomatik kaynak arşivi yerine ilgili sürümün ekli kaynak ZIP'ini kullanın.
+WinDesk MIT lisanslıdır. Kaynak kodu, testler ve derleme akışı [v0.7.14 etiketinde](https://github.com/LogicalTR/WinDesk/tree/v0.7.14) incelenebilir; [sürümle eşleşen kaynak ZIP'i](https://github.com/LogicalTR/WinDesk/releases/download/v0.7.14/WinDesk-0.7.14-source.zip) de yayın dosyalarındadır. Eski, yalnız dağıtım README'si içeren etiketlerin otomatik kaynak arşivi yerine ilgili sürümün ekli kaynak ZIP'ini kullanın.
 
 ## Code signing policy
 
-[İmzalama politikası ve ekip rolleri](https://github.com/LogicalTR/WinDesk/blob/v0.7.13/CODE_SIGNING.md) · [Gizlilik](https://github.com/LogicalTR/WinDesk/blob/v0.7.13/packaging/PRIVACY.txt).
+[İmzalama politikası ve ekip rolleri](https://github.com/LogicalTR/WinDesk/blob/v0.7.14/CODE_SIGNING.md) · [Gizlilik](https://github.com/LogicalTR/WinDesk/blob/v0.7.14/packaging/PRIVACY.txt).
 SignPath Foundation entegrasyonu hazırlanmıştır; kabul ve ilk imzalı yayın henüz tamamlanmamıştır. Geçmiş imzasız dosyalar geriye dönük imzalanmaz.
 <!-- windesk-release:end -->
