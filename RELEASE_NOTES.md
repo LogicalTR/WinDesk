@@ -11,6 +11,8 @@ Ctrl + Shift'in zamanla çalışmayı bırakması ve masaüstüne dönen panel b
 
 Doğrulama: Windows 11 üzerinde 72 kısayol/kurtarma ve 287 masaüstü/arayüz kontrolü geçti. Gerçek Windows kısayol dinleyicisi testte kaldırılarak otomatik yeniden kurulması doğrulandı. Kurulu uygulamada sağ/sol Ctrl + Shift ile öne/arkaya geçiş ve ek tuşlu kısayolların tetiklememesi kontrol edildi.
 
+Windows 10 22H2 sanal makinesinde 118 çekirdek, 72 kısayol/kurtarma ve 277 masaüstü kontrolü geçti. İlk çalışmada sabit 900 ms bekleyen bir kapanma kontrolü başarısız oldu; yalnız hata ayrıntıları eklenip davranış değiştirilmeden masaüstü paketi yeniden çalıştırıldığında geçti. Diğer 14 aşama ilk çalışmada geçti: gerçek kurulum, 0.7.13'ten güncelleme, uygulama içi güncelleme devri, kaldırma ve Explorer yeniden başlatması dahil. Düzen ve Unicode kısayol dosyalarının bayt düzeyinde korunduğu doğrulandı. Defender tehdit bulmadı; SmartScreen itibarı ve üretim imzası bu kontrollerin kapsamında değildir.
+
 Bu sürümün EXE ve Setup dosyaları Authenticode ile imzalı değildir. SignPath Foundation kabulü ve üretim yapılandırması henüz tamamlanmadı. [İmzalama politikası](https://github.com/LogicalTR/WinDesk/blob/v0.7.14/CODE_SIGNING.md).
 
 # WinDesk 0.7.13

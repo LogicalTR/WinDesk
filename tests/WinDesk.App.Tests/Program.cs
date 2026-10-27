@@ -122,7 +122,7 @@ internal static class Program
                 Check(Math.Abs(panel.Height - 46) < 1, "Brief pointer crossings do not flash the panel open");
                 panel.Expand();
                 await Task.Delay(900);
-                Check(Math.Abs(panel.Height - 46) < 1, "Show action also returns to a title bar when the pointer is elsewhere");
+                Check(Math.Abs(panel.Height - 46) < 1, $"Show action also returns to a title bar when the pointer is elsewhere (height={panel.Height:F1}, active={panel.ActiveSectionId}, pointerOver={panel.IsMouseOver}, delay={app.Workspace.CloseDelayMs})");
                 panel.Show();
                 DesktopNative.GetWindowRect(panel.Handle, out var rect);
                 var cover = new Window { Title = "WinDesk integration test", Width = 500, Height = 400, ShowActivated = true, ShowInTaskbar = false, Background = Brushes.DarkSlateGray };
