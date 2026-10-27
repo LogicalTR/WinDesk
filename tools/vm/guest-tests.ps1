@@ -54,13 +54,14 @@ function Run-Executable([string]$Executable, [string[]]$Arguments) {
 # Run Setup before the test bundles: proves the released app needs no global .NET.
 Run-Case 'setup' { & "$Root\tools\test-release.ps1" -Version $version }
 Run-Case 'core' { Run-Executable "$Root\tests\core\WinDesk.Core.Tests.exe" @() }
+Run-Case 'panel-hotkey' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--panel-hotkey-test') }
 Run-Case 'desktop' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--quiet', '--data-dir', "$Root\artifacts\desktop") }
 Run-Case 'shortcut-import' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--import-test') }
 Run-Case 'recovery' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--recovery-test') }
 Run-Case 'desktop-context' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--desktop-launch-test', "$Root\artifacts\desktop-context") }
 Run-Case 'display' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--display-test', '--quiet', '--data-dir', "$Root\artifacts\display") }
 Run-Case 'update-ui' { Run-Executable "$Root\tests\app\WinDesk.App.Tests.exe" @('--update-test', "$Root\artifacts\update-ui") }
-Run-Case 'installed-update' { & "$Root\tools\vm\test-installed-update.ps1" -Root $Root -Report $Report }
+Run-Case 'installed-update' { & "$Root\tools\vm\test-installed-update.ps1" -Root $Root -Report $Report -PreviousVersion '0.7.13' }
 Run-Case 'windows-security' {
     & "$Root\tools\test-windows-security.ps1" -ReleaseDirectory "$Root\dist\releases\$version" -ReportDirectory "$Report\security" -ScanDefender
 }

@@ -30,6 +30,9 @@ KULLANIM
 - Ctrl + Shift tuşlarına birlikte basıp bırakın: paneller öne gelir.
   Tekrar basıp bırakınca diğer pencerelerin arkasına döner.
 - Grup başlığına tıklayınca o grup hemen açılır; sürükleyerek taşıyabilirsiniz.
+- Panelin görünen kısmına tıklamak onu geçici olarak öne getirir.
+  Fare ayrıldıktan 2 saniye sonra başlıklar görünür kalarak masaüstüne döner.
+  Ctrl + Shift ile öne getirdiğiniz paneller bu sayaca bağlı değildir.
 - Saat yanındaki WinDesk simgesi: Ayarlar, Yeni panel, Çıkış.
 - Panel başlığına yaklaşınca grup açılır; raptiye açık kalmasını sağlar.
 - Kısayolları sürükleyip gruba bırakın.

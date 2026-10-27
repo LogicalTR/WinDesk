@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using WinDesk.App;
@@ -125,4 +127,101 @@ internal static class PanelLayerTests
 
     private static bool SameBounds(DesktopNative.Rect a, DesktopNative.Rect b) =>
         a.Left == b.Left && a.Top == b.Top && a.Right == b.Right && a.Bottom == b.Bottom;
+
+    internal static async Task ClickPreview(App app, Action<bool, string> check)
+    {
+        app.Workspace.Panels.Clear(); app.Workspace.Stacks.Clear();
+        var model = new PanelModel { Name = "Geçici önizleme", X = 140, Y = 140, IsPinned = true };
+        app.Workspace.Panels.Add(model);
+        app.Workspace.Panels.Add(new PanelModel { Name = "Diğer panel", X = 600, Y = 140 });
+        app.SetCloseDelay(200); app.RebuildPanels();
+        var panel = app.DesktopPanels.First();
+        var cover = new Window { Title = "WinDesk click layer test", Width = 200, Height = 350,
+            ShowActivated = false, ShowInTaskbar = false, Background = Brushes.DarkSlateGray };
+        var menu = new ContextMenu(); menu.Items.Add(new MenuItem { Header = "Test menüsü" }); panel.TrackMenu(menu);
+        var originalHitTest = app.WindowAtPoint;
+        try
+        {
+            cover.Show();
+            await Task.Delay(200);
+            var coverHandle = new WindowInteropHelper(cover).Handle;
+            DesktopNative.GetWindowRect(panel.Handle, out var bounds);
+            DesktopNative.SetWindowPos(coverHandle, IntPtr.Zero, bounds.Left - 10, bounds.Top - 10, 200, 350, DesktopNative.NoActivate);
+            await Task.Delay(200);
+            var point = new DesktopNative.Point(bounds.Left + 80, bounds.Top + 22);
+            var blockingRoot = DesktopNative.GetAncestor(DesktopNative.WindowFromPoint(point), 2);
+            check(blockingRoot != IntPtr.Zero && blockingRoot != panel.DesktopParent,
+                "An application covers the panel before the click");
+            IntPtr handle = panel.Handle;
+            var presentation = PresentationSource.FromVisual(panel);
+            var foreground = DesktopNative.GetForegroundWindow();
+            // Drive the same routed preview event as a click on a visible child.
+            // Only pointer hit testing is substituted; HWNDs and timers are real.
+            bool pointerOver = true;
+            app.WindowAtPoint = _ => pointerOver ? panel.Handle : coverHandle;
+            void Click()
+            {
+                var input = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
+                    { RoutedEvent = Mouse.PreviewMouseDownEvent };
+                panel.Sections.First().RaiseEvent(input);
+                check(!input.Handled, "The first click is still delivered to the original control");
+            }
+            Click();
+            check(panel.IsTopmost && !app.PanelsOnTop && !app.DesktopPanels.Last().IsTopmost,
+                "One click temporarily raises only the clicked panel");
+            check(panel.Handle == handle && ReferenceEquals(presentation, PresentationSource.FromVisual(panel)),
+                "Raising retains the native windows and WPF input source");
+            check(DesktopNative.GetAncestor(DesktopNative.WindowFromPoint(point), 2) == handle &&
+                DesktopNative.GetForegroundWindow() == foreground,
+                "The clicked panel covers the application without stealing keyboard focus");
+            await Task.Delay(2300); app.RefreshDesktopConnection();
+            check(panel.IsTopmost, "Pointer hover and the desktop watchdog preserve the temporary foreground layer");
+            pointerOver = false; await Task.Delay(1300);
+            check(panel.IsTopmost, "The panel stays forward before the full two seconds, independent of the close delay");
+            pointerOver = true; await Task.Delay(1100);
+            check(panel.IsTopmost, "Returning the pointer cancels the pending layer return");
+            pointerOver = false; await Task.Delay(2300);
+            handle = panel.Handle;
+            check(!panel.IsTopmost && DesktopNative.GetParent(handle) == panel.DesktopParent &&
+                DesktopNative.GetAncestor(DesktopNative.WindowFromPoint(point), 2) == blockingRoot,
+                "Two seconds after leaving, the panel returns behind the application");
+            check(!ReferenceEquals(presentation, PresentationSource.FromVisual(panel)) &&
+                ((HwndSource)presentation!).IsDisposed && DesktopNative.IsWindowVisible(handle) &&
+                PresentationSource.FromVisual(panel) is HwndSource { IsDisposed: false } replacement && replacement.RootVisual == panel,
+                "Returning creates a fresh visible desktop surface without waiting for another hover");
+            check(DesktopNative.GetWindowRect(handle, out var restored) && SameBounds(bounds, restored) &&
+                panel.IsSectionExpanded(model.Id) && DesktopNative.GetForegroundWindow() == foreground,
+                "Returning retains pinned contents, exact bounds and foreground focus");
+
+            Click(); menu.PlacementTarget = panel; menu.IsOpen = true;
+            await Task.Delay(2300);
+            check(panel.IsTopmost, "An open menu holds the temporary foreground layer");
+            menu.IsOpen = false; await Task.Delay(1100);
+            check(panel.IsTopmost, "Closing the menu starts a fresh two-second countdown");
+            await Task.Delay(1200);
+            check(!panel.IsTopmost, "The panel returns after the menu closes and the delay expires");
+
+            Click(); panel.BeginDrag(new DesktopNative.Point(bounds.Left + 20, bounds.Top + 20));
+            await Task.Delay(2300);
+            check(panel.IsTopmost, "Dragging outside the panel holds the temporary layer");
+            panel.EndDrag(default, false); await Task.Delay(2300);
+            check(!panel.IsTopmost, "Cancelling a drag resumes the return countdown");
+
+            Click(); panel.Hide(); panel.Show();
+            check(!panel.IsTopmost && DesktopNative.IsWindowVisible(panel.Handle), "Hide/show clears temporary foreground state");
+            Click(); app.TogglePanelLayer(); await Task.Delay(2300);
+            check(app.PanelsOnTop && panel.IsTopmost, "Explicit Ctrl+Shift mode overrides the automatic return");
+            app.TogglePanelLayer();
+            check(!panel.IsTopmost, "The next explicit toggle returns the panel to the desktop");
+            Click(); panel.DisconnectFromDesktop(); app.RefreshDesktopConnection();
+            check(!panel.IsTopmost && panel.Handle != IntPtr.Zero, "Reconnection discards stale temporary foreground state");
+        }
+        finally
+        {
+            app.WindowAtPoint = originalHitTest;
+            panel.UntrackMenu(menu);
+            if (app.PanelsOnTop) app.TogglePanelLayer();
+            cover.Close();
+        }
+    }
 }

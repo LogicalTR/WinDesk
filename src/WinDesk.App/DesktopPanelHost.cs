@@ -14,7 +14,7 @@ internal sealed class DesktopPanelHost : IDisposable
     private DesktopContainer? _container;
     private int _regionWidth, _regionHeight;
     internal IntPtr Parent { get; }
-    internal bool IsTopmost { get; }
+    internal bool IsTopmost { get; private set; }
     internal IntPtr Handle => _container?.Handle ?? IntPtr.Zero;
     internal bool IsAlive => Handle != IntPtr.Zero && DesktopNative.IsWindow(Handle) && DesktopNative.GetParent(Handle) == (IsTopmost ? IntPtr.Zero : Parent) &&
         _source is { IsDisposed: false } && DesktopNative.IsWindow(_source.Handle) && DesktopNative.GetParent(_source.Handle) == Handle;
@@ -71,6 +71,58 @@ internal sealed class DesktopPanelHost : IDisposable
         if (message == 0x21) // WM_MOUSEACTIVATE: clicks and hovers must not raise Explorer or steal focus.
         { handled = true; return new IntPtr(3); } // MA_NOACTIVATE
         return IntPtr.Zero;
+    }
+
+    internal void SetTopmost(bool topmost)
+    {
+        if (IsTopmost == topmost || !IsAlive) return;
+        if (!DesktopNative.IsDesktopHost(Parent)) throw new InvalidOperationException("Masaüstü bağlantısı bulunamadı.");
+        if (!DesktopNative.GetWindowRect(Handle, out var bounds)) throw new Win32Exception(Marshal.GetLastWin32Error());
+        IntPtr previous = DesktopNative.SetThreadDpiAwarenessContext(DesktopNative.GetWindowDpiAwarenessContext(Parent));
+        if (previous == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
+        try
+        {
+            // Keep both HWNDs and the WPF visual alive so the first click,
+            // button capture and an in-progress drag survive the layer change.
+            long style = DesktopNative.GetWindowLongPtr(Handle, -16).ToInt64();
+            long extended = DesktopNative.GetWindowLongPtr(Handle, -20).ToInt64();
+            var position = new DesktopNative.Point(bounds.Left, bounds.Top);
+            if (topmost)
+            {
+                Reparent(IntPtr.Zero);
+                SetStyle(-16, (style & ~DesktopNative.ChildStyle) | 0x80000000L);
+                SetStyle(-20, extended | 0x80); // WS_EX_TOOLWINDOW
+            }
+            else
+            {
+                if (!DesktopNative.ScreenToClient(Parent, ref position)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                if (!DesktopNative.SetWindowPos(Handle, new IntPtr(-2), 0, 0, 0, 0, 0x03 | DesktopNative.NoActivate))
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                SetStyle(-16, (style & ~0x80000000L) | DesktopNative.ChildStyle);
+                SetStyle(-20, extended & ~0x88L); // TOOLWINDOW | TOPMOST
+                Reparent(Parent);
+            }
+            IsTopmost = topmost;
+            if (!DesktopNative.SetWindowPos(Handle, topmost ? new IntPtr(-1) : IntPtr.Zero,
+                position.X, position.Y, bounds.Right - bounds.Left, bounds.Bottom - bounds.Top,
+                DesktopNative.NoActivate | 0x20)) // SWP_FRAMECHANGED
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+        finally { DesktopNative.SetThreadDpiAwarenessContext(previous); }
+    }
+
+    private void Reparent(IntPtr parent)
+    {
+        Marshal.SetLastPInvokeError(0);
+        if (DesktopNative.SetParent(Handle, parent) == IntPtr.Zero && Marshal.GetLastWin32Error() is int error && error != 0)
+            throw new Win32Exception(error);
+    }
+
+    private void SetStyle(int index, long value)
+    {
+        Marshal.SetLastPInvokeError(0);
+        if (DesktopNative.SetWindowLongPtr(Handle, index, new IntPtr(value)) == IntPtr.Zero && Marshal.GetLastWin32Error() is int error && error != 0)
+            throw new Win32Exception(error);
     }
 
     internal void SetBounds(double screenX, double screenY, double width, double height)

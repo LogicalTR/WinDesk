@@ -32,6 +32,9 @@ public sealed class DesktopPanel : UserControl, IDisposable
     private readonly DispatcherTimer _closeTimer = new();
     private readonly DispatcherTimer _positionTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer _sectionScrollTimer = new() { Interval = TimeSpan.FromMilliseconds(70) };
+    private readonly DispatcherTimer _layerTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private bool _temporaryTopmost, _persistentTopmost;
+    private long? _pointerLeftAt;
     private DesktopPanelHost? _host;
     private DesktopPanelHost? _dragPreview;
     private TextBlock? _dragPreviewHint;
@@ -112,6 +115,8 @@ public sealed class DesktopPanel : UserControl, IDisposable
         };
         MouseEnter += (_, _) => _closeTimer.Stop();
         MouseLeave += (_, _) => { _openTimer.Stop(); _pendingSection = null; QueueCollapse(); };
+        PreviewMouseDown += (_, _) => BringForwardTemporarily();
+        _layerTimer.Tick += (_, _) => CheckTemporaryLayer();
         SizeChanged += (_, _) => UpdateBounds();
         PreviewKeyDown += (_, e) =>
         {
@@ -127,17 +132,22 @@ public sealed class DesktopPanel : UserControl, IDisposable
     internal void ConnectToDesktop(IntPtr desktop, bool topmost = false)
     {
         if (_closed) return;
-        if (_host is null || !_host.IsAlive || _host.Parent != desktop || _host.IsTopmost != topmost)
+        bool modeChanged = _persistentTopmost != topmost;
+        if (modeChanged) ClearTemporaryLayer();
+        _persistentTopmost = topmost;
+        if (_host is null || !_host.IsAlive || _host.Parent != desktop || modeChanged)
         {
             DisconnectFromDesktop();
             _host = new DesktopPanelHost(desktop, this, "WinDesk · " + (_stack?.Name ?? _models[0].Name), topmost);
         }
+        else _host.SetTopmost(topmost || _temporaryTopmost);
         ClampPosition(); UpdateSize(); UpdateBounds();
         _host.SetVisible(_requestedVisible);
     }
 
     internal void DisconnectFromDesktop()
     {
+        ClearTemporaryLayer();
         if (Controller.IsShortcutDragging) Controller.EndShortcutDrag(default, false);
         _openTimer.Stop(); _closeTimer.Stop(); _sectionScrollTimer.Stop();
         _dragPreview?.Dispose(); _dragPreview = null;
@@ -147,7 +157,69 @@ public sealed class DesktopPanel : UserControl, IDisposable
     }
 
     public void Show() { _requestedVisible = true; _host?.SetVisible(true); }
-    public void Hide() { _requestedVisible = false; Collapse(); _host?.SetVisible(false); }
+    public void Hide() { _requestedVisible = false; Collapse(); _host?.SetVisible(false); ReturnToDesktop(); }
+
+    private void BringForwardTemporarily()
+    {
+        if (_closed || !_requestedVisible || _persistentTopmost || _host is not { IsAlive: true }) return;
+        if (!ChangeLayer(true)) return;
+        _temporaryTopmost = true;
+        _pointerLeftAt = null;
+        _layerTimer.Start();
+    }
+
+    private void CheckTemporaryLayer()
+    {
+        if (!_temporaryTopmost) return;
+        if (_host is not { IsAlive: true }) { DisconnectFromDesktop(); return; }
+        // Native hit testing also handles capture, popups and windows covering
+        // the panel, for which WPF's IsMouseOver may remain stale.
+        if (_dragging || _anotherPanelDragging || _dialogOpen || _openMenus > 0 || Controller.IsShortcutDragging ||
+            (DesktopNative.GetCursorPos(out var point) &&
+             DesktopNative.GetAncestor(Controller.WindowAtPoint(point), 2) == Handle))
+        {
+            _pointerLeftAt = null;
+            return;
+        }
+        long now = System.Diagnostics.Stopwatch.GetTimestamp();
+        _pointerLeftAt ??= now;
+        if (System.Diagnostics.Stopwatch.GetElapsedTime(_pointerLeftAt.Value, now) >= TimeSpan.FromSeconds(2))
+            ReturnToDesktop();
+    }
+
+    private void ClearTemporaryLayer()
+    {
+        _layerTimer.Stop(); _temporaryTopmost = false; _pointerLeftAt = null;
+    }
+
+    private void ReturnToDesktop()
+    {
+        ClearTemporaryLayer();
+        if (_persistentTopmost || _host is not { IsTopmost: true }) return;
+        // Reparenting a layered top-level window back into Explorer can leave
+        // its cached surface blank until the next hover/paint on Windows 11.
+        // At this point pointer capture, menus and dragging have finished, so
+        // create a fresh desktop surface while retaining this panel's content.
+        IntPtr desktop = _host.Parent;
+        DisconnectFromDesktop();
+        try { ConnectToDesktop(desktop); }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            System.Diagnostics.Trace.WriteLine($"WinDesk desktop return: {ex}");
+            DisconnectFromDesktop();
+        }
+    }
+
+    private bool ChangeLayer(bool topmost)
+    {
+        try { _host?.SetTopmost(topmost); return true; }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            System.Diagnostics.Trace.WriteLine($"WinDesk panel layer: {ex}");
+            DisconnectFromDesktop();
+            return false;
+        }
+    }
 
     internal void HoverSection(Guid id)
     {

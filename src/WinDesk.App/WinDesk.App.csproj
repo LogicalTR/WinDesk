@@ -14,7 +14,7 @@
     <Company>LogicalTR</Company>
     <Product>WinDesk</Product>
     <Description>Windows desktop organizer</Description>
-    <Version>0.7.13</Version>
+    <Version>0.7.14</Version>
     <RuntimeFrameworkVersion>10.0.13</RuntimeFrameworkVersion>
     <!-- SignPath enforces the same four-part product version on every PE. -->
     <InformationalVersion>$(Version).0</InformationalVersion>

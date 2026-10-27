@@ -19,6 +19,8 @@ Kurulumun son ekranında **ByBrowser'ı da indirmek ister misiniz? (İndir ve ku
 
 **Ctrl + Shift** ile tüm panelleri öne getirin; tekrar kullanınca masaüstüne geri gönderin. Grup başlığına tıklamak seçilen grubu hemen açar; başlıkları sürükleyerek sıralama ve ayırma kullanılmaya devam eder.
 
+Panelin görünen kısmına tıklamak o paneli geçici olarak öne getirir. Fare ayrıldıktan 2 saniye sonra başlıkları görünür kalarak masaüstüne döner. Ctrl + Shift ile öne getirilen paneller ise aynı kısayola tekrar basılana kadar önde kalır.
+
 Saat yanındaki WinDesk simgesinden yeni grup ekleyin veya ayarlara ulaşın. Kısayolları gruplara bırakın; başlıkları sürükleyerek birleştirin, sıralayın veya ayırın. Raptiye grubu açık tutar.
 
 **Otomatik kapanma** süresi, panelden ayrılmanın yanında birleşik gruplar arasında başlıkla geçişte de uygulanır. Süre dolunca önceki grup kapanıp yeni grup açılır; önceki gruba geri dönmek geçişi iptal eder. Sabitlenmiş gruplar açık kalır.

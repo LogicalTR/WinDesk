@@ -1,10 +1,10 @@
-﻿param([Parameter(Mandatory)][string]$Root, [Parameter(Mandatory)][string]$Report)
+﻿param([Parameter(Mandatory)][string]$Root, [Parameter(Mandatory)][string]$Report, [ValidatePattern('^\d+\.\d+\.\d+$')][string]$PreviousVersion = '0.7.6')
 $ErrorActionPreference = 'Stop'
 if ($env:COMPUTERNAME -ne 'WINDESK-QA') { throw 'Upgrade testing is restricted to the disposable VM.' }
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 if ([Security.Principal.WindowsPrincipal]::new($identity).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Run without elevation.' }
 $version = ([xml](Get-Content "$Root\src\WinDesk.App\WinDesk.App.csproj" -Raw)).Project.PropertyGroup.Version
-$oldVersion = '0.7.6'
+$oldVersion = $PreviousVersion
 $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C984BBCE-651F-4B55-ACB5-8531C17B7C38}_is1'
 $menu = 'HKCU:\Software\Classes\DesktopBackground\Shell\WinDesk'
 if ((Test-Path $key) -or (Get-Process WinDesk -ErrorAction SilentlyContinue)) { throw 'VM must have no existing installation or running WinDesk.' }

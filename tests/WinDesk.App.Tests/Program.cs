@@ -28,7 +28,7 @@ internal static class Program
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
         }
         if (args.Contains("--panel-hotkey-test")) {
-            try { PanelLayerTests.Chords(Check); Console.WriteLine($"{_assertions} panel hotkey assertions passed."); return 0; }
+            try { PanelLayerTests.Chords(Check); PanelHotkeyRecoveryTests.Run(Check); Console.WriteLine($"{_assertions} panel hotkey assertions passed."); return 0; }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
         }
         if (args.Contains("--shortcut-click-test")) {
@@ -79,6 +79,7 @@ internal static class Program
             {
                 if (args.Contains("--panel-layer-test")) {
                     await PanelLayerTests.Run(app, Check);
+                    await PanelLayerTests.ClickPreview(app, Check);
                     await HeaderInteractionTests.Run(app, Check);
                     Console.WriteLine($"{_assertions} panel layer assertions passed."); return;
                 }
@@ -307,6 +308,7 @@ internal static class Program
                 await DisplayBehaviorTests.Run(app, Check);
                 await CloseDelayTests.Run(app, Check);
                 await PanelLayerTests.Run(app, Check);
+                await PanelLayerTests.ClickPreview(app, Check);
                 await HeaderInteractionTests.Run(app, Check);
                 Console.WriteLine($"{_assertions} WPF and desktop integration assertions passed.");
             }

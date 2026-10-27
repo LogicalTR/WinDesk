@@ -41,6 +41,10 @@ The `windows-security` case records Authenticode findings and runs a non-remedia
 
 ## Installed update transition
 
+The current guest run uses `-PreviousVersion 0.7.13` to exercise the immediate
+upgrade to 0.7.14. Include the published 0.7.13 Setup in the bundle. The script's
+default remains 0.7.6 for a separate legacy upgrade check.
+
 The bundle must also contain the published 0.7.6 Setup alongside the candidate release. `test-installed-update.ps1` installs 0.7.6 into a custom directory, seeds a Unicode workspace/owned shortcut, upgrades with the candidate's actual installer, and checks executable hashes, remembered directory/tasks, menu commands and preserved data. It then runs `--installed-update-test` to exercise production download verification, save-before-launch, graceful shutdown and real Setup execution, followed by a restart and uninstall/data preservation check.
 
 Only the unpublished release HTTP response is supplied by a local test fixture; its installer bytes are the actual candidate. The installer-launch delegate adds Inno Setup's silent flags to complete the wizard unattended inside the VM. It does not replace the installer process. The normal application still shows the interactive wizard. The test entry point refuses to run outside `WINDESK-QA`. Evidence includes the real Setup logs, a handoff receipt, executable digests and the preserved fixture data. Future runs archive only data bearing this test's ownership marker; unrecognized user data is never replaced.

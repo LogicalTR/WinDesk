@@ -1,3 +1,18 @@
+# WinDesk 0.7.14
+
+Ctrl + Shift'in zamanla çalışmayı bırakması ve masaüstüne dönen panel başlıklarının kaybolması düzeltildi.
+
+- Kısayol dinleyicisi devre dışı kalırsa tuşlar bırakıldıktan sonra otomatik yenilenir. Kaçırılan tuş bırakma olayları temizlenir; uygulamayı yeniden başlatmak gerekmez. Sağ/sol Ctrl ve Shift desteklenir, Ctrl + Shift + T gibi ek tuşlu kısayollar paneli tetiklemez.
+- Panelin görünen kısmına tıklamak o paneli geçici olarak öne getirir. Fare ayrıldıktan 2 saniye sonra masaüstüne döner; fareyle geri dönmek sayacı iptal eder. Menü, iletişim kutusu ve sürükleme sırasında panel önde kalır.
+- Masaüstüne dönüşte görüntü yüzeyi yeniden oluşturulur. Başlıkların tamamen kaybolup ancak fareyle üzerine gelince görünmesi giderildi; konumlar, sabitlenmiş gruplar ve kısayollar korunur.
+- Ctrl + Shift ile seçilen önde kalma modu fare ayrıldığında kapanmaz; aynı kısayol tekrar kullanıldığında masaüstüne döner.
+
+**Güncelleme:** **Ayarlar → Güncellemeleri denetle** veya `WinDesk-Setup-0.7.14-x64.exe`. Mevcut düzen, gruplar ve saklanan kısayollar korunur.
+
+Doğrulama: Windows 11 üzerinde 72 kısayol/kurtarma ve 287 masaüstü/arayüz kontrolü geçti. Gerçek Windows kısayol dinleyicisi testte kaldırılarak otomatik yeniden kurulması doğrulandı. Kurulu uygulamada sağ/sol Ctrl + Shift ile öne/arkaya geçiş ve ek tuşlu kısayolların tetiklememesi kontrol edildi.
+
+Bu sürümün EXE ve Setup dosyaları Authenticode ile imzalı değildir. SignPath Foundation kabulü ve üretim yapılandırması henüz tamamlanmadı. [İmzalama politikası](https://github.com/LogicalTR/WinDesk/blob/v0.7.14/CODE_SIGNING.md).
+
 # WinDesk 0.7.13
 
 Ctrl + Shift ile panelleri öne getirme, grup başlıklarının açılması ve doğru kullanıcı düzeninin korunması.

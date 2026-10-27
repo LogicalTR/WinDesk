@@ -10,7 +10,11 @@ internal sealed class PanelHotkey : IDisposable
 {
     private readonly Thread _thread;
     private uint _threadId;
+    private IntPtr _hook;
+    private int _registrations;
     private bool _disposed;
+    internal IntPtr HookHandle => Interlocked.CompareExchange(ref _hook, IntPtr.Zero, IntPtr.Zero);
+    internal int Registrations => Volatile.Read(ref _registrations);
 
     internal PanelHotkey(Action toggle)
     {
@@ -19,6 +23,7 @@ internal sealed class PanelHotkey : IDisposable
         _thread = new Thread(() =>
         {
             var chord = new ControlShiftChord();
+            long lastInput = Environment.TickCount64;
             // Seed keys already held when WinDesk starts. Do not treat them as a new chord.
             for (int key = 8; key < 256; key++)
                 // Hook events identify left/right modifiers; do not also seed their generic aliases.
@@ -27,6 +32,7 @@ internal sealed class PanelHotkey : IDisposable
             {
                 if (code == 0 && message.ToInt64() is 0x100 or 0x101 or 0x104 or 0x105)
                 {
+                    lastInput = Environment.TickCount64;
                     int key = Marshal.ReadInt32(data);
                     bool down = message.ToInt64() is 0x100 or 0x104;
                     // Queue the UI work; this thread must promptly return to the hook chain.
@@ -36,19 +42,51 @@ internal sealed class PanelHotkey : IDisposable
             };
             _threadId = GetCurrentThreadId();
             PeekMessage(out _, IntPtr.Zero, 0, 0, 0); // Create the queue before Dispose can post WM_QUIT.
-            IntPtr hook = SetWindowsHookEx(13, callback, GetModuleHandle(null), 0); // WH_KEYBOARD_LL
-            if (hook == IntPtr.Zero) error = Marshal.GetLastWin32Error();
+            _hook = SetWindowsHookEx(13, callback, GetModuleHandle(null), 0); // WH_KEYBOARD_LL
+            nuint timer = _hook != IntPtr.Zero ? SetTimer(IntPtr.Zero, 0, 1000, IntPtr.Zero) : 0;
+            if (_hook == IntPtr.Zero || timer == 0)
+            {
+                error = Marshal.GetLastWin32Error();
+                if (error == 0) error = 31;
+            }
+            if (error == 0) Interlocked.Increment(ref _registrations);
             ready.Set();
-            if (hook == IntPtr.Zero) return;
             try
             {
+                if (error != 0) return;
                 while (GetMessage(out var message, IntPtr.Zero, 0, 0) > 0)
                 {
+                    if (message.Message == 0x113 && (nuint)message.WParam == timer) // WM_TIMER
+                    {
+                        // Read asynchronous state outside the hook callback. Key-up
+                        // events can be lost when the input desktop/session changes.
+                        chord.Synchronize(key => (GetAsyncKeyState(key) & 0x8000) != 0);
+                        if (chord.IsIdle && Environment.TickCount64 - lastInput >= 2000)
+                        {
+                            // Windows can silently remove a timed-out low-level hook.
+                            // Refresh only between chords, without interrupting typing.
+                            IntPtr replacement = SetWindowsHookEx(13, callback, GetModuleHandle(null), 0);
+                            if (replacement != IntPtr.Zero)
+                            {
+                                IntPtr previous = Interlocked.Exchange(ref _hook, replacement);
+                                if (previous != IntPtr.Zero) UnhookWindowsHookEx(previous);
+                                Interlocked.Increment(ref _registrations);
+                            }
+                            lastInput = Environment.TickCount64;
+                        }
+                        continue;
+                    }
                     TranslateMessage(ref message);
                     DispatchMessage(ref message);
                 }
             }
-            finally { UnhookWindowsHookEx(hook); GC.KeepAlive(callback); }
+            finally
+            {
+                if (timer != 0) KillTimer(IntPtr.Zero, timer);
+                IntPtr hook = Interlocked.Exchange(ref _hook, IntPtr.Zero);
+                if (hook != IntPtr.Zero) UnhookWindowsHookEx(hook);
+                GC.KeepAlive(callback);
+            }
         }) { IsBackground = true, Name = "WinDesk panel hotkey" };
         _thread.Start();
         ready.Wait();
@@ -83,6 +121,8 @@ internal sealed class PanelHotkey : IDisposable
     [DllImport("user32.dll")] private static extern bool TranslateMessage(ref NativeMessage message);
     [DllImport("user32.dll")] private static extern IntPtr DispatchMessage(ref NativeMessage message);
     [DllImport("user32.dll")] private static extern bool PostThreadMessage(uint thread, uint message, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll", SetLastError = true)] private static extern nuint SetTimer(IntPtr window, nuint id, uint milliseconds, IntPtr callback);
+    [DllImport("user32.dll")] private static extern bool KillTimer(IntPtr window, nuint id);
     [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr GetModuleHandle(string? name);
 }
@@ -93,6 +133,24 @@ internal sealed class ControlShiftChord
     private bool _armed, _blocked, _used;
 
     internal void SeedKey(int key) { _down[key] = true; _blocked = true; }
+    internal bool IsIdle => Array.IndexOf(_down, true) < 0;
+
+    internal void Synchronize(Func<int, bool> isDown)
+    {
+        bool changed = false;
+        for (int key = 8; key < _down.Length; key++)
+        {
+            // Do not invent generic modifier aliases when only left/right
+            // events are in use, but clear an alias if one was actually seen.
+            bool down = (key is not (0x10 or 0x11 or 0x12) || _down[key]) && isDown(key);
+            if (_down[key] == down) continue;
+            _down[key] = down; changed = true;
+        }
+        // Recovery must never turn an incomplete/missed chord into a toggle.
+        if (changed) { _armed = false; _blocked = true; }
+        if (!(_down[0x11] || _down[0xA2] || _down[0xA3] || _down[0x10] || _down[0xA0] || _down[0xA1]))
+            _armed = _blocked = _used = false;
+    }
 
     internal bool Process(int key, bool down)
     {
